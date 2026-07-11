@@ -468,7 +468,7 @@ export default function App() {
             <span>•</span>
             <span>EST. 2026</span>
             <span>•</span>
-            <span className="text-stone-800 font-bold bg-stone-200 px-1.5 py-0.5">V0.1</span>
+            <span className="text-stone-800 font-bold bg-stone-200 px-1.5 py-0.5">V0.2</span>
           </div>
           <div className="flex flex-col items-center gap-1">
             <h1 className="text-4xl md:text-6xl font-serif font-black tracking-tight text-stone-900 uppercase">

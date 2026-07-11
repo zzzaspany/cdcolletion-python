@@ -229,7 +229,7 @@ HTML_TEMPLATE = """
                 </div>
                 <div class="flex items-center gap-2">
                     <h1 class="text-2xl md:text-3xl font-bold tracking-tight bg-gradient-to-r from-slate-100 via-indigo-200 to-indigo-400 bg-clip-text text-transparent">CD Vault</h1>
-                    <span class="text-[10px] font-mono font-semibold tracking-wider text-indigo-400 uppercase bg-indigo-500/10 border border-indigo-500/20 px-2 py-0.5 rounded-full">v0.1</span>
+                    <span class="text-[10px] font-mono font-semibold tracking-wider text-indigo-400 uppercase bg-indigo-500/10 border border-indigo-500/20 px-2 py-0.5 rounded-full">v0.2</span>
                 </div>
             </div>
 
