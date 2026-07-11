@@ -46,6 +46,7 @@ def get_pocketbase_internal_url():
     # Check explicit internal URL environment variable override first
     env_internal = os.environ.get("POCKETBASE_INTERNAL_URL")
     if env_internal:
+        print(f"[PocketBase Network] Using explicit POCKETBASE_INTERNAL_URL: {env_internal}")
         _cached_internal_url = env_internal
         return env_internal
 
@@ -74,18 +75,29 @@ def get_pocketbase_internal_url():
             seen.add(c)
             dedup_candidates.append(c)
             
+    print(f"[PocketBase Network] Probing candidates for internal resolution: {dedup_candidates}")
     for url in dedup_candidates:
-        try:
-            # Send a fast connection probe to the health endpoint (short timeout of 150ms)
-            response = requests.get(f"{url}/api/health", timeout=0.15)
-            if response.status_code == 200:
-                print(f"[PocketBase Network] Successfully connected internally to: {url}")
-                _cached_internal_url = url
-                return url
-        except requests.exceptions.RequestException:
-            pass
+        probe_urls = [
+            f"{url}/api/collections/{COLLECTION_NAME}/records?perPage=1",
+            f"{url}/api/health"
+        ]
+        for probe_url in probe_urls:
+            try:
+                # Use a larger 1.5s timeout for network & DNS resolution in container environments
+                print(f"[PocketBase Network] Probing {probe_url} ...")
+                response = requests.get(probe_url, timeout=1.5)
+                # Any response status of 200, 400, 403, or 404 indicates a running server responded
+                if response.status_code in [200, 204, 400, 403, 404]:
+                    print(f"[PocketBase Network] Success! Connected internally to: {url} (status: {response.status_code})")
+                    _cached_internal_url = url
+                    return url
+                else:
+                    print(f"[PocketBase Network] Connected to {url} but got unexpected status: {response.status_code}")
+            except requests.exceptions.RequestException as e:
+                print(f"[PocketBase Network] Probe to {probe_url} failed: {e}")
             
     # Fallback to standard POCKETBASE_URL if no connection probe is successful
+    print(f"[PocketBase Network] No probes succeeded. Falling back to POCKETBASE_URL: {POCKETBASE_URL}")
     _cached_internal_url = POCKETBASE_URL
     return POCKETBASE_URL
 
@@ -484,14 +496,15 @@ def index():
     internal_url = get_pocketbase_internal_url()
     try:
         # Fetch actual live data from local PocketBase
-        response = requests.get(
-            f"{internal_url}/api/collections/{COLLECTION_NAME}/records?sort=-created", 
-            timeout=1.0
-        )
+        url = f"{internal_url}/api/collections/{COLLECTION_NAME}/records?sort=-created"
+        response = requests.get(url, timeout=1.0)
         if response.status_code == 200:
             connected = True
             items = response.json().get("items", [])
-    except requests.exceptions.RequestException:
+        else:
+            print(f"[PocketBase Index Error] Fetch from {url} returned status {response.status_code}: {response.text}")
+    except requests.exceptions.RequestException as e:
+        print(f"[PocketBase Index Error] Failed to fetch items from {internal_url}: {e}")
         connected = False
         clear_pocketbase_cache()
 
@@ -568,8 +581,10 @@ def add_cd():
         if response.status_code in [200, 201]:
             flash("CD successfully saved directly to your local PocketBase!", "success")
         else:
+            print(f"[PocketBase Add Error] Server returned {response.status_code}: {response.text}")
             flash(f"PocketBase returned an API error: {response.text}", "error")
-    except requests.exceptions.RequestException:
+    except requests.exceptions.RequestException as e:
+        print(f"[PocketBase Add Error] Failed to connect: {e}")
         # Seamless offline backup creation
         mock_id = f"mock_{uuid.uuid4().hex[:8]}"
         mock_item = {
@@ -602,9 +617,11 @@ def delete_cd(record_id):
         if response.status_code == 204:
             flash("CD removed from collection!", "success")
         else:
+            print(f"[PocketBase Delete Error] Server returned {response.status_code}: {response.text}")
             remove_from_fallback(record_id)
             flash("Removed item from local memory.", "success")
-    except requests.exceptions.RequestException:
+    except requests.exceptions.RequestException as e:
+        print(f"[PocketBase Delete Error] Failed to connect: {e}")
         remove_from_fallback(record_id)
         flash("PocketBase offline. Removed item from local memory.", "success")
 
