@@ -31,6 +31,64 @@ app.secret_key = "cd_vault_python_secure_secret"
 POCKETBASE_URL = os.environ.get("POCKETBASE_URL", "http://127.0.0.1:8090")
 COLLECTION_NAME = "audiocd"
 
+# Smart caching and dynamic resolution of internal PocketBase container networking
+_cached_internal_url = None
+
+def clear_pocketbase_cache():
+    global _cached_internal_url
+    _cached_internal_url = None
+
+def get_pocketbase_internal_url():
+    global _cached_internal_url
+    if _cached_internal_url is not None:
+        return _cached_internal_url
+    
+    # Check explicit internal URL environment variable override first
+    env_internal = os.environ.get("POCKETBASE_INTERNAL_URL")
+    if env_internal:
+        _cached_internal_url = env_internal
+        return env_internal
+
+    from urllib.parse import urlparse
+    try:
+        parsed = urlparse(POCKETBASE_URL)
+        port = parsed.port or 8090
+    except Exception:
+        port = 8090
+    
+    # Candidate internal connection URLs for Docker/Podman same-network container resolution
+    candidates = [
+        POCKETBASE_URL,
+        f"http://pocketbase:{port}",
+        f"http://pocketbase-server:{port}",
+        f"http://host.docker.internal:{port}",
+        f"http://172.17.0.1:{port}",
+        f"http://127.0.0.1:{port}"
+    ]
+    
+    # Deduplicate candidates while preserving order
+    seen = set()
+    dedup_candidates = []
+    for c in candidates:
+        if c not in seen:
+            seen.add(c)
+            dedup_candidates.append(c)
+            
+    for url in dedup_candidates:
+        try:
+            # Send a fast connection probe to the health endpoint (short timeout of 150ms)
+            response = requests.get(f"{url}/api/health", timeout=0.15)
+            if response.status_code == 200:
+                print(f"[PocketBase Network] Successfully connected internally to: {url}")
+                _cached_internal_url = url
+                return url
+        except requests.exceptions.RequestException:
+            pass
+            
+    # Fallback to standard POCKETBASE_URL if no connection probe is successful
+    _cached_internal_url = POCKETBASE_URL
+    return POCKETBASE_URL
+
 # High-fidelity offline demo items in case PocketBase is offline or empty initially
 FALLBACK_ITEMS = [
     {
@@ -423,10 +481,11 @@ def index():
     connected = False
     items = []
 
+    internal_url = get_pocketbase_internal_url()
     try:
         # Fetch actual live data from local PocketBase
         response = requests.get(
-            f"{POCKETBASE_URL}/api/collections/{COLLECTION_NAME}/records?sort=-created", 
+            f"{internal_url}/api/collections/{COLLECTION_NAME}/records?sort=-created", 
             timeout=1.0
         )
         if response.status_code == 200:
@@ -434,6 +493,7 @@ def index():
             items = response.json().get("items", [])
     except requests.exceptions.RequestException:
         connected = False
+        clear_pocketbase_cache()
 
     # Gracefully fall back to local offline items if disconnected
     if not connected:
@@ -483,6 +543,7 @@ def add_cd():
     
     file_upload = request.files.get("file")
 
+    internal_url = get_pocketbase_internal_url()
     try:
         # Forward the multipart payload straight into your local PocketBase instance
         payload = {
@@ -498,7 +559,7 @@ def add_cd():
             files = {"file": (file_upload.filename, file_upload.read(), file_upload.content_type)}
 
         response = requests.post(
-            f"{POCKETBASE_URL}/api/collections/{COLLECTION_NAME}/records",
+            f"{internal_url}/api/collections/{COLLECTION_NAME}/records",
             data=payload,
             files=files,
             timeout=1.5
@@ -532,9 +593,10 @@ def add_cd():
 
 @app.route("/delete/<record_id>")
 def delete_cd(record_id):
+    internal_url = get_pocketbase_internal_url()
     try:
         response = requests.delete(
-            f"{POCKETBASE_URL}/api/collections/{COLLECTION_NAME}/records/{record_id}",
+            f"{internal_url}/api/collections/{COLLECTION_NAME}/records/{record_id}",
             timeout=1.0
         )
         if response.status_code == 204:
