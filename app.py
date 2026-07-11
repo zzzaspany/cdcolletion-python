@@ -101,6 +101,28 @@ def get_pocketbase_internal_url():
     _cached_internal_url = POCKETBASE_URL
     return POCKETBASE_URL
 
+@app.route("/api/files/<collection_id>/<record_id>/<filename>", methods=["GET"])
+def proxy_pb_file(collection_id, record_id, filename):
+    internal_url = get_pocketbase_internal_url()
+    pb_file_url = f"{internal_url}/api/files/{collection_id}/{record_id}/{filename}"
+    try:
+        response = requests.get(pb_file_url, stream=True, timeout=5.0)
+        from flask import Response
+        headers = {}
+        if "Content-Type" in response.headers:
+            headers["Content-Type"] = response.headers["Content-Type"]
+        if "Content-Length" in response.headers:
+            headers["Content-Length"] = response.headers["Content-Length"]
+            
+        def generate():
+            for chunk in response.iter_content(chunk_size=4096):
+                yield chunk
+                
+        return Response(generate(), status=response.status_code, headers=headers)
+    except Exception as e:
+        print(f"[PocketBase File Proxy Error] Failed to proxy file {filename}: {e}")
+        return "File not found or pocketbase offline", 404
+
 # High-fidelity offline demo items in case PocketBase is offline or empty initially
 FALLBACK_ITEMS = [
     {
@@ -364,7 +386,7 @@ HTML_TEMPLATE = """
                             <!-- Front Sleeve / Art Cover -->
                             {% if has_cover and connected %}
                                 <div class="absolute left-0 top-0 bottom-0 w-3/4 z-10 shadow-2xl transition-transform duration-500 ease-out group-hover:scale-[0.98] group-hover:translate-x-1" 
-                                     style="background: url('{{ pb_url }}/api/files/{{ item.collectionId }}/{{ item.id }}/{{ item.file[0] }}') center/cover no-repeat">
+                                     style="background: url('/api/files/{{ item.collectionId }}/{{ item.id }}/{{ item.file[0] }}') center/cover no-repeat">
                                     <div class="absolute inset-0 bg-gradient-to-tr from-white/0 via-white/5 to-white/10 mix-blend-overlay"></div>
                                     <div class="absolute top-0 bottom-0 left-0 w-1.5 bg-gradient-to-r from-black/40 to-transparent"></div>
                                 </div>
