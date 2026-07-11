@@ -169,9 +169,9 @@ HTML_TEMPLATE = """
                         <path d="M12 2a10 10 0 0110 10" stroke-width="2" />
                     </svg>
                 </div>
-                <div>
+                <div class="flex items-center gap-2">
                     <h1 class="text-2xl md:text-3xl font-bold tracking-tight bg-gradient-to-r from-slate-100 via-indigo-200 to-indigo-400 bg-clip-text text-transparent">CD Vault</h1>
-                    <p class="text-slate-400 text-xs md:text-sm mt-0.5">Pure Python index for your music collection and PocketBase server.</p>
+                    <span class="text-[10px] font-mono font-semibold tracking-wider text-indigo-400 uppercase bg-indigo-500/10 border border-indigo-500/20 px-2 py-0.5 rounded-full">v0.1</span>
                 </div>
             </div>
 
