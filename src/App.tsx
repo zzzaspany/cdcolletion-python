@@ -640,15 +640,6 @@ export default function App() {
                     {sortOrder}
                   </button>
                 </div>
-
-                {/* Add CD Trigger */}
-                <button
-                  onClick={() => setIsAddModalOpen(true)}
-                  className="bg-stone-900 hover:bg-stone-800 text-white font-semibold text-xs md:text-sm px-5 py-2 rounded-none transition-all flex items-center gap-2 uppercase tracking-wider border border-stone-900 cursor-pointer"
-                >
-                  <Plus className="h-4 w-4" />
-                  <span>Add CD</span>
-                </button>
               </div>
             </div>
 
@@ -658,7 +649,7 @@ export default function App() {
                 <Disc className="h-10 w-10 text-stone-400 animate-spin" style={{ animationDuration: '20s' }} />
                 <h3 className="text-lg font-serif font-bold text-stone-950 mt-2">No audio CDs found</h3>
                 <p className="text-stone-600 text-xs md:text-sm max-w-sm font-sans">
-                  {searchQuery ? "No records match your search query and filters." : "Your collection is currently empty. Connect your PocketBase or click 'Add CD' to insert items!"}
+                  {searchQuery ? "No records match your search query and filters." : "Your collection is currently empty."}
                 </p>
                 {searchQuery && (
                   <button 
@@ -766,14 +757,6 @@ export default function App() {
                         {/* Date Added and Actions */}
                         <div className="flex items-center justify-between pt-3 border-t border-stone-200 text-[11px] text-stone-400 font-mono tracking-wider uppercase">
                           <span>ADDED {new Date(item.created).toLocaleDateString()}</span>
-                          
-                          <button
-                            onClick={() => handleDeleteCD(item.id)}
-                            className="text-stone-400 hover:text-stone-800 p-1 transition-colors cursor-pointer"
-                            title="Delete CD from index"
-                          >
-                            <Trash2 className="h-3.5 w-3.5" />
-                          </button>
                         </div>
                       </div>
 

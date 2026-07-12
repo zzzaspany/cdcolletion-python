@@ -266,13 +266,6 @@ HTML_TEMPLATE = """
                     <span class="text-[10px] font-mono font-semibold tracking-wider text-indigo-400 uppercase bg-indigo-500/10 border border-indigo-500/20 px-2 py-0.5 rounded-full">v0.2</span>
                 </div>
             </div>
-
-            <div>
-                <button onclick="document.getElementById('add-modal').classList.remove('hidden')" class="bg-indigo-600 hover:bg-indigo-500 text-white font-medium text-xs md:text-sm px-4 py-2 rounded-xl transition-all flex items-center gap-2 shadow-lg shadow-indigo-600/15">
-                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /></svg>
-                    <span>Add CD</span>
-                </button>
-            </div>
         </header>
 
         <!-- Bento Stats Grid -->
@@ -355,7 +348,7 @@ HTML_TEMPLATE = """
                     <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-dasharray="4 4" stroke-width="2" />
                 </svg>
                 <h3 class="text-lg font-semibold text-slate-300 mt-2">No matching CDs found</h3>
-                <p class="text-slate-500 text-xs md:text-sm">Click 'Add CD' to begin indexing your items.</p>
+                <p class="text-slate-500 text-xs md:text-sm">Your CD collection is currently empty.</p>
             </div>
         {% else %}
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
@@ -441,9 +434,6 @@ HTML_TEMPLATE = """
                             <!-- Footer control links -->
                             <div class="flex items-center justify-between pt-3 border-t border-slate-900 text-[11px] text-slate-500">
                                 <span>ID: <code class="text-indigo-400 font-mono">{{ item.id[:8] }}</code></span>
-                                <a href="/delete/{{ item.id }}" onclick="return confirm('Remove CD from collection?')" class="text-slate-600 hover:text-rose-400 p-1 rounded-md hover:bg-rose-500/10 transition-colors">
-                                    <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
-                                </a>
                             </div>
                         </div>
 
