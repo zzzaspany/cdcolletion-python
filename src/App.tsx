@@ -135,6 +135,20 @@ export default function App() {
   const [formStatus, setFormStatus] = useState<{ type: 'success' | 'error' | null; message: string }>({ type: null, message: "" });
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
 
+  const [darkMode, setDarkMode] = useState<boolean>(() => {
+    return localStorage.getItem('theme') === 'dark';
+  });
+
+  useEffect(() => {
+    if (darkMode) {
+      document.documentElement.classList.add('dark');
+      localStorage.setItem('theme', 'dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+      localStorage.setItem('theme', 'light');
+    }
+  }, [darkMode]);
+
   // Generate a unique CSS background gradient based on CD title hash (muted editorial tones)
   const getCoverGradient = (title: string, authorName: string) => {
     let hash = 0;
@@ -411,55 +425,75 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-[#FBF9F6] text-stone-900 flex flex-col font-sans selection:bg-stone-200 selection:text-stone-850">
+    <div className="min-h-screen bg-[#FBF9F6] dark:bg-[#121110] text-stone-900 dark:text-[#FAF8F5] flex flex-col font-sans selection:bg-stone-200 selection:text-stone-850 transition-colors duration-300">
       
+      {/* Top utility bar */}
+      <div className="max-w-7xl w-full mx-auto px-4 pt-4 md:px-8 flex justify-end">
+        <button
+          onClick={() => setDarkMode(prev => !prev)}
+          className="flex items-center gap-2 px-3 py-1.5 text-xs font-mono font-bold tracking-wider border border-stone-300 dark:border-stone-800 hover:border-stone-900 dark:hover:border-stone-100 transition-all cursor-pointer text-stone-700 dark:text-stone-300 bg-white dark:bg-[#1C1A17] shadow-sm"
+        >
+          {darkMode ? (
+            <>
+              <Sparkles className="h-3.5 w-3.5 text-amber-400" />
+              <span>LIGHT THEME</span>
+            </>
+          ) : (
+            <>
+              <Disc className="h-3.5 w-3.5 text-stone-900 dark:text-stone-100" />
+              <span>DARK THEME</span>
+            </>
+          )}
+        </button>
+      </div>
+
       {/* Main App Layout */}
       <div className="flex-1 max-w-7xl w-full mx-auto p-4 md:p-8 flex flex-col gap-6 md:gap-8">
         
         {/* Navigation & Header */}
-        <header className="flex flex-col justify-center items-center text-center gap-4 border-b-4 border-double border-stone-900 pb-6 pt-2">
-          <div className="text-[10px] md:text-xs font-mono uppercase tracking-[0.2em] text-stone-500 flex items-center gap-2">
+        <header className="flex flex-col justify-center items-center text-center gap-4 border-b-4 border-double border-stone-900 dark:border-stone-100 pb-6 pt-2">
+          <div className="text-[10px] md:text-xs font-mono uppercase tracking-[0.2em] text-stone-500 dark:text-stone-400 flex items-center gap-2">
             <span>COLLECTOR'S EDITION ARCHIVE</span>
             <span>•</span>
             <span>EST. 2026</span>
             <span>•</span>
-            <span className="text-stone-800 font-bold bg-stone-200 px-1.5 py-0.5">V0.2</span>
+            <span className="text-stone-800 dark:text-stone-200 font-bold bg-stone-200 dark:bg-stone-800 px-1.5 py-0.5">V0.2</span>
             <span>•</span>
-            <span className="text-emerald-800 font-bold bg-emerald-100 px-1.5 py-0.5">{stats.count} ITEMS</span>
+            <span className="text-emerald-800 dark:text-emerald-400 font-bold bg-emerald-100 dark:bg-emerald-950/40 px-1.5 py-0.5">{stats.count} ITEMS</span>
           </div>
           <div className="flex flex-col items-center gap-1">
-            <h1 className="text-4xl md:text-6xl font-serif font-black tracking-tight text-stone-900 uppercase">
+            <h1 className="text-4xl md:text-6xl font-serif font-black tracking-tight text-stone-900 dark:text-white uppercase">
               The CD Journal
             </h1>
-            <p className="text-stone-600 font-serif italic text-xs md:text-sm max-w-lg mt-1">
+            <p className="text-stone-600 dark:text-stone-400 font-serif italic text-xs md:text-sm max-w-lg mt-1">
               A high-fidelity printed index and diagnostic dashboard for your physical compact disc library.
             </p>
           </div>
           
           {/* Thin divider line / information box */}
-          <div className="w-full flex flex-col sm:flex-row justify-between items-center border-t border-b border-stone-300 py-2.5 mt-2 text-xs text-stone-500 font-mono tracking-wider gap-3">
+          <div className="w-full flex flex-col sm:flex-row justify-between items-center border-t border-b border-stone-300 dark:border-stone-800 py-2.5 mt-2 text-xs text-stone-500 dark:text-stone-400 font-mono tracking-wider gap-3">
             <div className="flex items-center gap-2">
-              <Disc className={`h-4 w-4 text-stone-800 ${connectionStatus === 'connected' ? 'animate-[spin_6s_linear_infinite]' : ''}`} />
+              <Disc className={`h-4 w-4 text-stone-800 dark:text-stone-200 ${connectionStatus === 'connected' ? 'animate-[spin_6s_linear_infinite]' : ''}`} />
               <span>FORMAT: COMPACT DISC (12CM)</span>
             </div>
             <div className="flex items-center gap-4">
               <span>COLLECTION ID: PBC_386466699</span>
               <span className="hidden sm:inline">•</span>
-              <span className="text-stone-900 font-semibold uppercase">{connectionStatus === 'connected' ? 'LIVE SYNCED' : 'SANDBOX FALLBACK'}</span>
+              <span className="text-stone-900 dark:text-stone-100 font-semibold uppercase">{connectionStatus === 'connected' ? 'LIVE SYNCED' : 'SANDBOX FALLBACK'}</span>
             </div>
           </div>
           
-          <div className="flex items-center gap-1.5 bg-stone-100 p-1 rounded-none border border-stone-300 w-full md:w-auto mt-2">
+          <div className="flex items-center gap-1.5 bg-stone-100 dark:bg-stone-900 p-1 rounded-none border border-stone-300 dark:border-stone-800 w-full md:w-auto mt-2">
             <button
               onClick={() => setActiveTab('collection')}
-              className={`flex-1 md:flex-initial flex items-center justify-center gap-2 px-6 py-2 text-xs font-bold tracking-wider uppercase transition-all cursor-pointer ${activeTab === 'collection' ? 'bg-[#1C1A17] text-white' : 'text-stone-600 hover:text-stone-900 hover:bg-stone-200/50'}`}
+              className={`flex-1 md:flex-initial flex items-center justify-center gap-2 px-6 py-2 text-xs font-bold tracking-wider uppercase transition-all cursor-pointer ${activeTab === 'collection' ? 'bg-[#1C1A17] dark:bg-[#FAF8F5] text-white dark:text-stone-900' : 'text-stone-600 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-100 hover:bg-stone-200/50 dark:hover:bg-stone-800/50'}`}
             >
               <Layers className="h-3.5 w-3.5" />
               CD Collection
             </button>
             <button
               onClick={() => setActiveTab('python')}
-              className={`flex-1 md:flex-initial flex items-center justify-center gap-2 px-6 py-2 text-xs font-bold tracking-wider uppercase transition-all cursor-pointer ${activeTab === 'python' ? 'bg-[#1C1A17] text-white' : 'text-stone-600 hover:text-stone-900 hover:bg-stone-200/50'}`}
+              className={`flex-1 md:flex-initial flex items-center justify-center gap-2 px-6 py-2 text-xs font-bold tracking-wider uppercase transition-all cursor-pointer ${activeTab === 'python' ? 'bg-[#1C1A17] dark:bg-[#FAF8F5] text-white dark:text-stone-900' : 'text-stone-600 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-100 hover:bg-stone-200/50 dark:hover:bg-stone-800/50'}`}
             >
               <Code2 className="h-3.5 w-3.5" />
               Python Guide
@@ -471,17 +505,17 @@ export default function App() {
         {activeTab === 'collection' && (
           <>
             {/* Utility Bar: Search, Sort & Filters */}
-            <div className="border border-stone-300 bg-white p-4 flex flex-col md:flex-row md:items-center gap-4 justify-between">
+            <div className="border border-stone-300 dark:border-stone-800 bg-white dark:bg-[#1C1A17] p-4 flex flex-col md:flex-row md:items-center gap-4 justify-between">
               
               {/* Search Bar */}
               <div className="relative flex-1 max-w-md w-full">
-                <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-stone-400" />
+                <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-stone-400 dark:text-stone-500" />
                 <input
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="Search album name or artist..."
-                  className="w-full bg-[#FAF8F5] border border-stone-300 rounded-none py-2 pl-10 pr-4 text-xs md:text-sm text-stone-900 placeholder-stone-400 focus:outline-none focus:border-stone-900 transition-colors font-sans"
+                  className="w-full bg-[#FAF8F5] dark:bg-[#121110] border border-stone-300 dark:border-stone-800 rounded-none py-2 pl-10 pr-4 text-xs md:text-sm text-stone-900 dark:text-[#FAF8F5] placeholder-stone-400 dark:placeholder-stone-500 focus:outline-none focus:border-stone-900 dark:focus:border-stone-100 transition-colors font-sans"
                 />
               </div>
 
@@ -489,39 +523,39 @@ export default function App() {
               <div className="flex flex-wrap items-center gap-3">
                 
                 {/* Min Grading quality */}
-                <div className="flex items-center bg-white border border-stone-300 rounded-none px-3 py-1.5 gap-2">
-                  <SlidersHorizontal className="h-3.5 w-3.5 text-stone-400" />
-                  <span className="text-xs text-stone-500 font-mono uppercase tracking-wider">Min CD Rating:</span>
+                <div className="flex items-center bg-white dark:bg-[#1C1A17] border border-stone-300 dark:border-stone-800 rounded-none px-3 py-1.5 gap-2">
+                  <SlidersHorizontal className="h-3.5 w-3.5 text-stone-400 dark:text-stone-500" />
+                  <span className="text-xs text-stone-500 dark:text-stone-400 font-mono uppercase tracking-wider">Min CD Rating:</span>
                   <select 
                     value={minCondition}
                     onChange={(e) => setMinCondition(Number(e.target.value))}
-                    className="bg-transparent text-xs text-stone-950 font-semibold focus:outline-none cursor-pointer font-sans"
+                    className="bg-transparent text-xs text-stone-950 dark:text-[#FAF8F5] font-semibold focus:outline-none cursor-pointer font-sans"
                   >
-                    <option value={0} className="bg-white">Any</option>
-                    <option value={5} className="bg-white">5+ Good</option>
-                    <option value={7} className="bg-white">7+ Very Good</option>
-                    <option value={9} className="bg-white">9+ Near Mint</option>
+                    <option value={0} className="bg-white dark:bg-stone-900 text-stone-900 dark:text-stone-100">Any</option>
+                    <option value={5} className="bg-white dark:bg-stone-900 text-stone-900 dark:text-stone-100">5+ Good</option>
+                    <option value={7} className="bg-white dark:bg-stone-900 text-stone-900 dark:text-stone-100">7+ Very Good</option>
+                    <option value={9} className="bg-white dark:bg-stone-900 text-stone-900 dark:text-stone-100">9+ Near Mint</option>
                   </select>
                 </div>
 
                 {/* Sorting drop-down */}
-                <div className="flex items-center bg-white border border-stone-300 rounded-none px-3 py-1.5 gap-2">
-                  <ArrowUpDown className="h-3.5 w-3.5 text-stone-400" />
+                <div className="flex items-center bg-white dark:bg-[#1C1A17] border border-stone-300 dark:border-stone-800 rounded-none px-3 py-1.5 gap-2">
+                  <ArrowUpDown className="h-3.5 w-3.5 text-stone-400 dark:text-stone-500" />
                   <select
                     value={sortBy}
                     onChange={(e) => setSortBy(e.target.value as any)}
-                    className="bg-transparent text-xs text-stone-950 font-semibold focus:outline-none cursor-pointer font-sans"
+                    className="bg-transparent text-xs text-stone-950 dark:text-[#FAF8F5] font-semibold focus:outline-none cursor-pointer font-sans"
                   >
-                    <option value="created" className="bg-white">Date Added</option>
-                    <option value="album" className="bg-white">Album Title</option>
-                    <option value="author" className="bg-white">Artist Name</option>
-                    <option value="cdcondition" className="bg-white">CD Grading</option>
-                    <option value="covercondition" className="bg-white">Cover Grading</option>
-                    <option value="price" className="bg-white">Price</option>
+                    <option value="created" className="bg-white dark:bg-stone-900 text-stone-900 dark:text-stone-100">Date Added</option>
+                    <option value="album" className="bg-white dark:bg-stone-900 text-stone-900 dark:text-stone-100">Album Title</option>
+                    <option value="author" className="bg-white dark:bg-stone-900 text-stone-900 dark:text-stone-100">Artist Name</option>
+                    <option value="cdcondition" className="bg-white dark:bg-stone-900 text-stone-900 dark:text-stone-100">CD Grading</option>
+                    <option value="covercondition" className="bg-white dark:bg-stone-900 text-stone-900 dark:text-stone-100">Cover Grading</option>
+                    <option value="price" className="bg-white dark:bg-stone-900 text-stone-900 dark:text-stone-100">Price</option>
                   </select>
                   <button
                     onClick={() => setSortOrder(prev => prev === 'asc' ? 'desc' : 'asc')}
-                    className="text-stone-800 hover:text-stone-950 font-mono text-xs font-semibold uppercase tracking-wider pl-1.5 border-l border-stone-300 cursor-pointer"
+                    className="text-stone-800 dark:text-stone-200 hover:text-stone-950 dark:hover:text-white font-mono text-xs font-semibold uppercase tracking-wider pl-1.5 border-l border-stone-300 dark:border-stone-800 cursor-pointer"
                   >
                     {sortOrder}
                   </button>
@@ -531,16 +565,16 @@ export default function App() {
 
             {/* List Results Grid */}
             {filteredAndSortedCds.length === 0 ? (
-              <div className="bg-white border border-stone-300 rounded-none p-12 text-center flex flex-col items-center justify-center gap-3">
-                <Disc className="h-10 w-10 text-stone-400 animate-spin" style={{ animationDuration: '20s' }} />
-                <h3 className="text-lg font-serif font-bold text-stone-950 mt-2">No audio CDs found</h3>
-                <p className="text-stone-600 text-xs md:text-sm max-w-sm font-sans">
+              <div className="bg-white dark:bg-[#1C1A17] border border-stone-300 dark:border-stone-800 rounded-none p-12 text-center flex flex-col items-center justify-center gap-3">
+                <Disc className="h-10 w-10 text-stone-400 dark:text-stone-500 animate-spin" style={{ animationDuration: '20s' }} />
+                <h3 className="text-lg font-serif font-bold text-stone-950 dark:text-white mt-2">No audio CDs found</h3>
+                <p className="text-stone-600 dark:text-stone-400 text-xs md:text-sm max-w-sm font-sans">
                   {searchQuery ? "No records match your search query and filters." : "Your collection is currently empty."}
                 </p>
                 {searchQuery && (
                   <button 
                     onClick={() => { setSearchQuery(""); setMinCondition(0); }} 
-                    className="mt-2 text-xs text-stone-800 hover:text-stone-950 font-semibold underline underline-offset-4 cursor-pointer"
+                    className="mt-2 text-xs text-stone-800 dark:text-stone-200 hover:text-stone-950 dark:hover:text-white font-semibold underline underline-offset-4 cursor-pointer"
                   >
                     Clear Search Filters
                   </button>
@@ -558,25 +592,25 @@ export default function App() {
                   return (
                     <div 
                       key={item.id}
-                      className="group relative bg-white border border-stone-300 rounded-none p-5 flex flex-col justify-between hover:border-stone-950 hover:shadow-lg transition-all duration-300"
+                      className="group relative bg-white dark:bg-[#1C1A17] border border-stone-300 dark:border-stone-800 rounded-none p-5 flex flex-col justify-between hover:border-stone-950 dark:hover:border-stone-300 hover:shadow-lg dark:hover:shadow-black/40 transition-all duration-300"
                     >
                       {/* Floating Price Badge */}
-                      <div className="absolute top-4 right-4 z-20 bg-stone-100 border border-stone-300 text-stone-900 font-mono font-bold text-xs px-2.5 py-1 rounded-none">
+                      <div className="absolute top-4 right-4 z-20 bg-stone-100 dark:bg-stone-900 border border-stone-300 dark:border-stone-800 text-stone-900 dark:text-stone-100 font-mono font-bold text-xs px-2.5 py-1 rounded-none">
                         {item.price} PLN
                       </div>
 
                       {/* Sliding Disc Jewel Case Cover */}
-                      <div className="relative aspect-[4/3] w-full bg-[#FAF8F5] rounded-none overflow-hidden mb-4 border border-stone-200 shadow-inner flex items-center justify-center">
+                      <div className="relative aspect-[4/3] w-full bg-[#FAF8F5] dark:bg-stone-900/40 rounded-none overflow-hidden mb-4 border border-stone-200 dark:border-stone-800 shadow-inner flex items-center justify-center">
                         
                         {/* CD Tray/Holder (behind sleeve) */}
-                        <div className="absolute right-3 top-1/2 -translate-y-1/2 w-40 h-40 rounded-full border border-stone-300 bg-stone-100 flex items-center justify-center shadow-md transform translate-x-2 opacity-50 group-hover:translate-x-6 group-hover:opacity-100 transition-all duration-700">
+                        <div className="absolute right-3 top-1/2 -translate-y-1/2 w-40 h-40 rounded-full border border-stone-300 dark:border-stone-800 bg-stone-100 dark:bg-stone-900 flex items-center justify-center shadow-md transform translate-x-2 opacity-50 group-hover:translate-x-6 group-hover:opacity-100 transition-all duration-700">
                           {/* Inner Vinyl Groove */}
-                          <div className="w-36 h-36 rounded-full border border-stone-300 bg-stone-200 flex items-center justify-center relative shadow-inner animate-[spin_12s_linear_infinite]">
-                            <div className="absolute inset-2 rounded-full border border-stone-300" />
-                            <div className="absolute inset-5 rounded-full border border-stone-300" />
-                            <div className="absolute inset-8 rounded-full border border-stone-300" />
-                            <div className="w-10 h-10 rounded-full bg-stone-100 border border-stone-300 flex items-center justify-center">
-                              <div className="w-4 h-4 rounded-full bg-stone-300 border border-stone-400" />
+                          <div className="w-36 h-36 rounded-full border border-stone-300 dark:border-stone-800 bg-stone-200 dark:bg-stone-950 flex items-center justify-center relative shadow-inner animate-[spin_12s_linear_infinite]">
+                            <div className="absolute inset-2 rounded-full border border-stone-300 dark:border-stone-800" />
+                            <div className="absolute inset-5 rounded-full border border-stone-300 dark:border-stone-800" />
+                            <div className="absolute inset-8 rounded-full border border-stone-300 dark:border-stone-800" />
+                            <div className="w-10 h-10 rounded-full bg-stone-100 dark:bg-stone-900 border border-stone-300 dark:border-stone-800 flex items-center justify-center">
+                              <div className="w-4 h-4 rounded-full bg-stone-300 dark:bg-stone-700 border border-stone-400 dark:border-stone-800" />
                             </div>
                           </div>
                         </div>
@@ -594,14 +628,14 @@ export default function App() {
                           
                           {/* Sleeve Text when no image is loaded */}
                           {!coverUrl && (
-                            <div className="absolute inset-0 p-4 flex flex-col justify-between text-stone-900 bg-[#EFECE6] border-r border-stone-300">
+                            <div className="absolute inset-0 p-4 flex flex-col justify-between text-stone-900 dark:text-[#FAF8F5] bg-[#EFECE6] dark:bg-[#2A2824] border-r border-stone-300 dark:border-stone-800">
                               <div className="flex items-start justify-between">
-                                <Disc className="h-5 w-5 text-stone-700 opacity-80" />
-                                <span className="text-[9px] font-mono tracking-widest text-stone-500 uppercase bg-stone-200/60 px-1.5 py-0.5 rounded-none">CD FORMAT</span>
+                                <Disc className="h-5 w-5 text-stone-700 dark:text-stone-300 opacity-80" />
+                                <span className="text-[9px] font-mono tracking-widest text-stone-500 dark:text-stone-400 uppercase bg-stone-200/60 dark:bg-stone-800/60 px-1.5 py-0.5 rounded-none">CD FORMAT</span>
                               </div>
-                              <div className="border-t border-stone-400 pt-3">
-                                <h4 className="font-serif font-black text-sm leading-tight tracking-tight text-stone-950 uppercase line-clamp-2">{item.album}</h4>
-                                <p className="font-serif italic text-[11px] text-stone-700 mt-1 tracking-wide font-medium capitalize">{item.author}</p>
+                              <div className="border-t border-stone-400 dark:border-stone-700 pt-3">
+                                <h4 className="font-serif font-black text-sm leading-tight tracking-tight text-stone-950 dark:text-white uppercase line-clamp-2">{item.album}</h4>
+                                <p className="font-serif italic text-[11px] text-stone-700 dark:text-stone-300 mt-1 tracking-wide font-medium capitalize">{item.author}</p>
                               </div>
                             </div>
                           )}
@@ -611,28 +645,28 @@ export default function App() {
                       {/* Item details */}
                       <div className="flex flex-col gap-3">
                         <div>
-                          <h3 className="font-serif font-black text-stone-900 group-hover:text-stone-950 capitalize text-base tracking-tight truncate line-clamp-1">{item.album}</h3>
-                          <p className="text-stone-500 font-serif italic text-xs capitalize mt-0.5 tracking-wide truncate">{item.author}</p>
+                          <h3 className="font-serif font-black text-stone-900 dark:text-white group-hover:text-stone-950 dark:group-hover:text-amber-100 capitalize text-base tracking-tight truncate line-clamp-1">{item.album}</h3>
+                          <p className="text-stone-500 dark:text-stone-400 font-serif italic text-xs capitalize mt-0.5 tracking-wide truncate">{item.author}</p>
                         </div>
 
                         {/* Grading Condition Blocks */}
                         <div className="grid grid-cols-2 gap-2 pt-1 font-sans">
-                          <div className="bg-[#FAF8F5] border border-stone-200 rounded-none p-2 flex flex-col justify-between">
-                            <span className="text-[9px] font-mono text-stone-500 uppercase tracking-wider">CD Disc</span>
+                          <div className="bg-[#FAF8F5] dark:bg-stone-900/50 border border-stone-200 dark:border-stone-800 rounded-none p-2 flex flex-col justify-between">
+                            <span className="text-[9px] font-mono text-stone-500 dark:text-stone-400 uppercase tracking-wider">CD Disc</span>
                             <div className="flex items-baseline gap-1 mt-0.5">
-                              <span className="text-sm font-serif font-black text-stone-950">{item.cdcondition}</span>
-                              <span className="text-[10px] text-stone-400 font-mono">/10</span>
+                              <span className="text-sm font-serif font-black text-stone-950 dark:text-white">{item.cdcondition}</span>
+                              <span className="text-[10px] text-stone-400 dark:text-stone-500 font-mono">/10</span>
                             </div>
                             <span className={`text-[9px] font-semibold mt-1 inline-block border px-1.5 py-0.5 rounded-none text-center ${conditionColor(item.cdcondition)}`}>
                               {getConditionLabel(item.cdcondition)}
                             </span>
                           </div>
 
-                          <div className="bg-[#FAF8F5] border border-stone-200 rounded-none p-2 flex flex-col justify-between">
-                            <span className="text-[9px] font-mono text-stone-500 uppercase tracking-wider">Sleeve/Cover</span>
+                          <div className="bg-[#FAF8F5] dark:bg-stone-900/50 border border-stone-200 dark:border-stone-800 rounded-none p-2 flex flex-col justify-between">
+                            <span className="text-[9px] font-mono text-stone-500 dark:text-stone-400 uppercase tracking-wider">Sleeve/Cover</span>
                             <div className="flex items-baseline gap-1 mt-0.5">
-                              <span className="text-sm font-serif font-black text-stone-950">{item.covercondition}</span>
-                              <span className="text-[10px] text-slate-400 font-mono">/10</span>
+                              <span className="text-sm font-serif font-black text-stone-950 dark:text-white">{item.covercondition}</span>
+                              <span className="text-[10px] text-stone-400 dark:text-stone-500 font-mono">/10</span>
                             </div>
                             <span className={`text-[9px] font-semibold mt-1 inline-block border px-1.5 py-0.5 rounded-none text-center ${conditionColor(item.covercondition)}`}>
                               {getConditionLabel(item.covercondition)}
@@ -641,7 +675,7 @@ export default function App() {
                         </div>
 
                         {/* Date Added and Actions */}
-                        <div className="flex items-center justify-between pt-3 border-t border-stone-200 text-[11px] text-stone-400 font-mono tracking-wider uppercase">
+                        <div className="flex items-center justify-between pt-3 border-t border-stone-200 dark:border-stone-800 text-[11px] text-stone-400 dark:text-stone-500 font-mono tracking-wider uppercase">
                           <span>ADDED {new Date(item.created).toLocaleDateString()}</span>
                         </div>
                       </div>
@@ -655,20 +689,20 @@ export default function App() {
         )}
 
         {activeTab === 'python' && (
-          <section className="bg-white border border-stone-300 p-6 md:p-8 flex flex-col gap-6">
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-stone-300 pb-5">
+          <section className="bg-white dark:bg-[#1C1A17] border border-stone-300 dark:border-stone-800 p-6 md:p-8 flex flex-col gap-6">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-stone-300 dark:border-stone-800 pb-5">
               <div>
-                <h2 className="text-xl md:text-2xl font-serif font-black text-stone-900 flex items-center gap-2">
+                <h2 className="text-xl md:text-2xl font-serif font-black text-stone-900 dark:text-white flex items-center gap-2">
                   <span>🐍</span>
                   <span>Pure Python CD Collection App</span>
                 </h2>
-                <p className="text-stone-600 text-xs md:text-sm mt-1 font-serif italic">
+                <p className="text-stone-600 dark:text-stone-400 text-xs md:text-sm mt-1 font-serif italic">
                   We have preloaded a fully functional Flask web server in your project workspace. This script connects natively to your PocketBase and serves a styled HTML view!
                 </p>
               </div>
               
               <div className="flex items-center gap-2">
-                <span className="text-xs bg-[#FAF8F5] px-3 py-1.5 rounded-none border border-stone-300 text-stone-700 font-mono">app.py</span>
+                <span className="text-xs bg-[#FAF8F5] dark:bg-[#121110] px-3 py-1.5 rounded-none border border-stone-300 dark:border-stone-800 text-stone-700 dark:text-stone-300 font-mono">app.py</span>
               </div>
             </div>
 
@@ -677,37 +711,37 @@ export default function App() {
               {/* How to run instructions */}
               <div className="lg:col-span-1 flex flex-col gap-5">
                 <div>
-                  <h3 className="font-bold text-stone-900 text-sm md:text-base mb-2 font-serif">How to Run Locally:</h3>
-                  <ol className="text-xs md:text-sm text-stone-700 flex flex-col gap-3.5 list-decimal pl-5 font-sans">
+                  <h3 className="font-bold text-stone-900 dark:text-white text-sm md:text-base mb-2 font-serif">How to Run Locally:</h3>
+                  <ol className="text-xs md:text-sm text-stone-700 dark:text-stone-300 flex flex-col gap-3.5 list-decimal pl-5 font-sans">
                     <li>
-                      <p className="font-semibold text-stone-900">Ensure PocketBase is running:</p>
-                      <code className="block bg-[#FAF8F5] border border-stone-300 rounded-none px-2.5 py-1.5 mt-1 text-amber-850 font-mono">./pocketbase serve</code>
+                      <p className="font-semibold text-stone-900 dark:text-stone-100">Ensure PocketBase is running:</p>
+                      <code className="block bg-[#FAF8F5] dark:bg-[#121110] border border-stone-300 dark:border-stone-800 rounded-none px-2.5 py-1.5 mt-1 text-amber-850 dark:text-amber-400 font-mono">./pocketbase serve</code>
                     </li>
                     <li>
-                      <p className="font-semibold text-stone-900">Export your code:</p>
-                      <span className="text-stone-600">Download this project ZIP from the top right settings wheel in AI Studio.</span>
+                      <p className="font-semibold text-stone-900 dark:text-stone-100">Export your code:</p>
+                      <span className="text-stone-600 dark:text-stone-400">Download this project ZIP from the top right settings wheel in AI Studio.</span>
                     </li>
                     <li>
-                      <p className="font-semibold text-stone-900">Install dependencies:</p>
-                      <code className="block bg-[#FAF8F5] border border-stone-300 rounded-none px-2.5 py-1.5 mt-1 text-stone-850 font-mono">pip install Flask requests</code>
+                      <p className="font-semibold text-stone-900 dark:text-stone-100">Install dependencies:</p>
+                      <code className="block bg-[#FAF8F5] dark:bg-[#121110] border border-stone-300 dark:border-stone-800 rounded-none px-2.5 py-1.5 mt-1 text-stone-850 dark:text-stone-200 font-mono">pip install Flask requests</code>
                     </li>
                     <li>
-                      <p className="font-semibold text-stone-900">Run the Python web app:</p>
-                      <code className="block bg-[#FAF8F5] border border-stone-300 rounded-none px-2.5 py-1.5 mt-1 text-stone-850 font-mono">python app.py</code>
+                      <p className="font-semibold text-stone-900 dark:text-stone-100">Run the Python web app:</p>
+                      <code className="block bg-[#FAF8F5] dark:bg-[#121110] border border-stone-300 dark:border-stone-800 rounded-none px-2.5 py-1.5 mt-1 text-stone-850 dark:text-stone-200 font-mono">python app.py</code>
                     </li>
                     <li>
-                      <p className="font-semibold text-stone-900">Open in browser:</p>
-                      <span className="text-stone-600">Navigate to <code className="text-stone-900 font-mono font-semibold">http://localhost:5000</code> to view, search, and manage your CDs!</span>
+                      <p className="font-semibold text-stone-900 dark:text-stone-100">Open in browser:</p>
+                      <span className="text-stone-600 dark:text-stone-400">Navigate to <code className="text-stone-900 dark:text-stone-100 font-mono font-semibold">http://localhost:5000</code> to view, search, and manage your CDs!</span>
                     </li>
                   </ol>
                 </div>
 
-                <div className="bg-[#FAF8F5] border border-stone-300 p-4 flex flex-col gap-2 mt-2">
-                  <h4 className="text-xs font-bold text-stone-900 flex items-center gap-1.5 font-mono uppercase tracking-wider">
-                    <Sparkles className="h-3.5 w-3.5 text-stone-700" />
+                <div className="bg-[#FAF8F5] dark:bg-[#121110] border border-stone-300 dark:border-stone-800 p-4 flex flex-col gap-2 mt-2">
+                  <h4 className="text-xs font-bold text-stone-900 dark:text-white flex items-center gap-1.5 font-mono uppercase tracking-wider">
+                    <Sparkles className="h-3.5 w-3.5 text-stone-700 dark:text-stone-300" />
                     <span>Python & PocketBase SDK Note</span>
                   </h4>
-                  <p className="text-[11px] leading-relaxed text-stone-600 font-sans">
+                  <p className="text-[11px] leading-relaxed text-stone-600 dark:text-stone-400 font-sans">
                     Your Python script has been written to make use of the standard, secure, and fast HTTP API interface. This minimizes dependencies and guarantees instant cross-platform compatibility!
                   </p>
                 </div>

@@ -217,165 +217,265 @@ HTML_TEMPLATE = """
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CD Vault - Python PocketBase Manager</title>
+    <title>The CD Journal</title>
+    <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&display=swap');
-        body { font-family: 'Space Grotesk', sans-serif; }
-    </style>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['"Plus Jakarta Sans"', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+                        serif: ['Lora', 'ui-serif', 'Georgia', 'serif'],
+                        mono: ['"JetBrains Mono"', 'ui-monospace', 'monospace'],
+                    },
+                    colors: {
+                        stone: {
+                            850: '#22201e',
+                            950: '#121110',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <script>
+        // Check theme initially before body loads to prevent flash of light theme
+        if (localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.classList.add('dark');
+        } else {
+            document.documentElement.classList.remove('dark');
+        }
+    </script>
 </head>
-<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col selection:bg-indigo-500/30 selection:text-indigo-200">
+<body class="min-h-screen bg-[#FBF9F6] dark:bg-[#121110] text-stone-900 dark:text-[#FAF8F5] flex flex-col font-sans selection:bg-stone-200 dark:selection:bg-stone-850 selection:text-stone-850 dark:selection:text-stone-100 transition-colors duration-300">
     
-    <!-- Main Wrapper -->
+    <!-- Top utility bar -->
+    <div class="max-w-7xl w-full mx-auto px-4 pt-4 md:px-8 flex justify-between items-center">
+        <div>
+            {% if connected %}
+                <span class="text-[10px] font-mono font-bold text-emerald-800 dark:text-emerald-400 bg-emerald-100 dark:bg-emerald-950/40 px-2 py-1 uppercase tracking-wider">LIVE PARITY SYNCED</span>
+            {% else %}
+                <span class="text-[10px] font-mono font-bold text-amber-850 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/40 px-2 py-1 uppercase tracking-wider">SANDBOX BACKUP</span>
+            {% endif %}
+        </div>
+        <div class="flex items-center gap-3">
+            <button
+                onclick="toggleTheme()"
+                class="flex items-center gap-2 px-3 py-1.5 text-xs font-mono font-bold tracking-wider border border-stone-300 dark:border-stone-800 hover:border-stone-900 dark:hover:border-stone-100 transition-all cursor-pointer text-stone-700 dark:text-stone-300 bg-white dark:bg-[#1C1A17] shadow-sm"
+                id="theme-btn"
+            >
+                <span id="theme-btn-text">DARK THEME</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Main App Layout -->
     <div class="flex-1 max-w-7xl w-full mx-auto p-4 md:p-8 flex flex-col gap-6 md:gap-8">
-        <header class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-slate-900 pb-6">
-            <div class="flex items-center gap-4">
-                <div class="bg-slate-900 border border-slate-800 p-3.5 rounded-full relative shadow-inner">
-                    <svg class="h-8 w-8 text-indigo-400 animate-[spin_10s_linear_infinite]" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+        
+        <!-- Navigation & Header -->
+        <header class="flex flex-col justify-center items-center text-center gap-4 border-b-4 border-double border-stone-900 dark:border-stone-100 pb-6 pt-2">
+            <div class="text-[10px] md:text-xs font-mono uppercase tracking-[0.2em] text-stone-500 dark:text-stone-400 flex items-center gap-2">
+                <span>COLLECTOR'S EDITION ARCHIVE</span>
+                <span>•</span>
+                <span>EST. 2026</span>
+                <span>•</span>
+                <span class="text-stone-800 dark:text-stone-200 font-bold bg-stone-200 dark:bg-stone-800 px-1.5 py-0.5">V0.2</span>
+                <span>•</span>
+                <span class="text-emerald-800 dark:text-emerald-400 font-bold bg-emerald-100 dark:bg-emerald-950/40 px-1.5 py-0.5">{{ stats.count }} ITEMS</span>
+            </div>
+            <div class="flex flex-col items-center gap-1">
+                <h1 class="text-4xl md:text-6xl font-serif font-black tracking-tight text-stone-900 dark:text-white uppercase">
+                    The CD Journal
+                </h1>
+                <p class="text-stone-600 dark:text-stone-400 font-serif italic text-xs md:text-sm max-w-lg mt-1">
+                    A high-fidelity printed index and diagnostic dashboard for your physical compact disc library.
+                </p>
+            </div>
+            
+            <!-- Thin divider line / information box -->
+            <div class="w-full flex flex-col sm:flex-row justify-between items-center border-t border-b border-stone-300 dark:border-stone-800 py-2.5 mt-2 text-xs text-stone-500 dark:text-stone-400 font-mono tracking-wider gap-3">
+                <div class="flex items-center gap-2">
+                    <svg class="h-4 w-4 text-stone-800 dark:text-stone-200 animate-[spin_6s_linear_infinite]" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                         <circle cx="12" cy="12" r="10" stroke-width="2" />
                         <circle cx="12" cy="12" r="3" stroke-width="2" />
                         <path d="M12 2a10 10 0 0110 10" stroke-width="2" />
                     </svg>
+                    <span>FORMAT: COMPACT DISC (12CM)</span>
                 </div>
-                <div class="flex items-center gap-3">
-                    <h1 class="text-2xl md:text-3xl font-bold tracking-tight bg-gradient-to-r from-slate-100 via-indigo-200 to-indigo-400 bg-clip-text text-transparent">CD Vault</h1>
-                    <span class="text-[10px] font-mono font-semibold tracking-wider text-indigo-400 uppercase bg-indigo-500/10 border border-indigo-500/20 px-2 py-0.5 rounded-full">v0.2</span>
-                    <span class="text-xs font-mono font-bold tracking-wider text-emerald-400 uppercase bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-0.5 rounded-full">{{ stats.count }} Items</span>
+                <div class="flex items-center gap-4">
+                    <span>COLLECTION ID: PBC_386466699</span>
+                    <span class="hidden sm:inline">•</span>
+                    <span class="text-stone-900 dark:text-stone-100 font-semibold uppercase">{% if connected %}LIVE SYNCED{% else %}SANDBOX FALLBACK{% endif %}</span>
                 </div>
             </div>
-        </header>
 
-        <!-- Utility Bar & Search Form -->
-        <div class="bg-slate-900/30 border border-slate-900/60 p-4 rounded-2xl flex flex-col md:flex-row md:items-center gap-4 justify-between">
-            <form action="/" method="GET" class="relative flex-1 max-w-md w-full flex gap-2">
-                <div class="relative flex-1">
-                    <svg class="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                    </svg>
-                    <input
-                        type="text"
-                        name="q"
-                        value="{{ search_query }}"
-                        placeholder="Search by album name or artist/author..."
-                        class="w-full bg-slate-950 border border-slate-800 rounded-xl py-2 pl-10 pr-4 text-xs md:text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-indigo-500/50 transition-all"
-                    />
-                </div>
-                <button type="submit" class="bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold px-4 py-2 rounded-xl transition-all shadow shadow-indigo-600/10">
-                    Search
-                </button>
-            </form>
-            
-            {% if search_query %}
-            <div>
-                <a href="/" class="text-xs text-indigo-400 hover:text-indigo-300 underline underline-offset-4">Reset search query filter</a>
-            </div>
-            {% endif %}
-        </div>
+            <!-- Add CD Quick Trigger Button -->
+            <button
+                onclick="openModal()"
+                class="mt-2 bg-[#1C1A17] dark:bg-[#FAF8F5] text-white dark:text-stone-900 px-6 py-2.5 text-xs font-bold tracking-wider uppercase hover:opacity-90 transition-all cursor-pointer flex items-center gap-2"
+            >
+                <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                </svg>
+                <span>Add CD to Journal</span>
+            </button>
+        </header>
 
         <!-- Session Message Flashers -->
         {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
                 {% for category, message in messages %}
-                    <div class="p-3.5 rounded-xl border text-xs font-semibold {% if category == 'success' %}bg-emerald-500/10 border-emerald-500/20 text-emerald-400{% else %}bg-rose-500/10 border-rose-500/20 text-rose-400{% endif %} animate-pulse">
+                    <div class="p-4 border text-xs font-bold uppercase tracking-wider {% if category == 'success' %}bg-[#EFECE6] border-stone-400 text-stone-900 dark:text-stone-100 dark:bg-stone-900 dark:border-stone-800{% else %}bg-rose-50 border-rose-300 text-rose-800 dark:bg-rose-950/30 dark:border-rose-900 dark:text-rose-400{% endif %}">
                         {{ message }}
                     </div>
                 {% endfor %}
             {% endif %}
         {% endwith %}
 
+        <!-- Utility Bar: Search & Filtering -->
+        <div class="border border-stone-300 dark:border-stone-800 bg-white dark:bg-[#1C1A17] p-4 flex flex-col md:flex-row md:items-center gap-4 justify-between">
+            <form action="/" method="GET" class="relative flex-1 max-w-md w-full flex gap-2">
+                <div class="relative flex-1">
+                    <svg class="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-stone-400 dark:text-stone-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                    <input
+                        type="text"
+                        name="q"
+                        value="{{ search_query }}"
+                        placeholder="Search album name or artist..."
+                        class="w-full bg-[#FAF8F5] dark:bg-[#121110] border border-stone-300 dark:border-stone-800 rounded-none py-2 pl-10 pr-4 text-xs md:text-sm text-stone-900 dark:text-[#FAF8F5] placeholder-stone-400 dark:placeholder-stone-500 focus:outline-none focus:border-stone-900 dark:focus:border-stone-100 transition-colors font-sans"
+                    />
+                </div>
+                <button type="submit" class="bg-[#1C1A17] dark:bg-[#FAF8F5] text-white dark:text-stone-900 text-xs font-bold uppercase tracking-wider px-5 py-2 hover:opacity-90 transition-colors">
+                    Search
+                </button>
+            </form>
+            
+            {% if search_query %}
+            <div>
+                <a href="/" class="text-xs text-stone-800 dark:text-stone-200 hover:text-stone-950 dark:hover:text-white font-semibold underline underline-offset-4">
+                    Clear Search Filters
+                </a>
+            </div>
+            {% endif %}
+        </div>
+
         <!-- CD Jewel Cards List -->
         {% if items|length == 0 %}
-            <div class="bg-slate-900/20 border border-dashed border-slate-800 rounded-3xl p-12 text-center flex flex-col items-center justify-center gap-3">
-                <svg class="h-10 w-10 text-slate-700 animate-spin" style="animation-duration: 15s" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                    <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-dasharray="4 4" stroke-width="2" />
+            <div class="bg-white dark:bg-[#1C1A17] border border-stone-300 dark:border-stone-800 rounded-none p-12 text-center flex flex-col items-center justify-center gap-3">
+                <svg class="h-10 w-10 text-stone-400 dark:text-stone-500 animate-spin" style="animation-duration: 20s" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="12" cy="12" r="10" stroke-width="2" />
+                    <circle cx="12" cy="12" r="3" stroke-width="2" />
+                    <path d="M12 2a10 10 0 0110 10" stroke-width="2" />
                 </svg>
-                <h3 class="text-lg font-semibold text-slate-300 mt-2">No matching CDs found</h3>
-                <p class="text-slate-500 text-xs md:text-sm">Your CD collection is currently empty.</p>
+                <h3 class="text-lg font-serif font-bold text-stone-950 dark:text-white mt-2">No audio CDs found</h3>
+                <p class="text-stone-600 dark:text-stone-400 text-xs md:text-sm max-sm font-sans">
+                    {% if search_query %}No records match your search query.{% else %}Your collection is currently empty.{% endif %}
+                </p>
             </div>
         {% else %}
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
                 {% for item in items %}
                     {% set has_cover = item.file and item.file|length > 0 %}
-                    <div class="group relative bg-slate-900/35 border border-slate-900 rounded-2xl p-4 flex flex-col justify-between hover:bg-slate-900/60 hover:border-slate-800 transition-all duration-500 hover:shadow-xl hover:shadow-black/20">
+                    <div class="group relative bg-white dark:bg-[#1C1A17] border border-stone-300 dark:border-stone-800 rounded-none p-5 flex flex-col justify-between hover:border-stone-950 dark:hover:border-stone-300 hover:shadow-lg dark:hover:shadow-black/40 transition-all duration-300">
                         
-                        <!-- Value Badge -->
-                        <div class="absolute top-3 right-3 z-20 bg-slate-950/80 border border-slate-800 text-indigo-300 font-mono font-bold text-xs px-2.5 py-1 rounded-full backdrop-blur">
+                        <!-- Floating Price Badge -->
+                        <div class="absolute top-4 right-4 z-20 bg-stone-100 dark:bg-stone-900 border border-stone-300 dark:border-stone-800 text-stone-900 dark:text-stone-100 font-mono font-bold text-xs px-2.5 py-1 rounded-none">
                             {{ item.price }} PLN
                         </div>
 
-                        <!-- Jewel Case Slide-out Disc -->
-                        <div class="relative aspect-[4/3] w-full bg-slate-950 rounded-xl overflow-hidden mb-4 border border-slate-800/80 shadow-inner flex items-center justify-center">
+                        <!-- Sliding Disc Jewel Case Cover -->
+                        <div class="relative aspect-[4/3] w-full bg-[#FAF8F5] dark:bg-stone-900/40 rounded-none overflow-hidden mb-4 border border-stone-200 dark:border-stone-800 shadow-inner flex items-center justify-center">
                             
-                            <!-- Plastic CD Disc Core -->
-                            <div class="absolute right-3 top-1/2 -translate-y-1/2 w-40 h-40 rounded-full border border-slate-800 bg-slate-950 flex items-center justify-center shadow-lg transform translate-x-2 opacity-50 group-hover:translate-x-6 group-hover:opacity-100 transition-all duration-700">
-                                <div class="w-36 h-36 rounded-full border border-slate-900/50 bg-slate-900 flex items-center justify-center relative shadow-inner animate-[spin_12s_linear_infinite]">
-                                    <div class="absolute inset-2 rounded-full border border-slate-800/30"></div>
-                                    <div class="absolute inset-5 rounded-full border border-slate-800/30"></div>
-                                    <div class="absolute inset-8 rounded-full border border-slate-800/30"></div>
-                                    <div class="w-10 h-10 rounded-full bg-indigo-500/20 border border-indigo-400/10 flex items-center justify-center">
-                                        <div class="w-4 h-4 rounded-full bg-slate-950 border border-slate-800"></div>
+                            <!-- CD Tray/Holder (behind sleeve) -->
+                            <div class="absolute right-3 top-1/2 -translate-y-1/2 w-40 h-40 rounded-full border border-stone-300 dark:border-stone-800 bg-stone-100 dark:bg-stone-900 flex items-center justify-center shadow-md transform translate-x-2 opacity-50 group-hover:translate-x-6 group-hover:opacity-100 transition-all duration-700">
+                                <!-- Inner Vinyl Groove -->
+                                <div class="w-36 h-36 rounded-full border border-stone-300 dark:border-stone-800 bg-stone-200 dark:bg-stone-950 flex items-center justify-center relative shadow-inner animate-[spin_12s_linear_infinite]">
+                                    <div class="absolute inset-2 rounded-full border border-stone-300 dark:border-stone-800"></div>
+                                    <div class="absolute inset-5 rounded-full border border-stone-300 dark:border-stone-800"></div>
+                                    <div class="absolute inset-8 rounded-full border border-stone-300 dark:border-stone-800"></div>
+                                    <div class="w-10 h-10 rounded-full bg-stone-100 dark:bg-stone-900 border border-stone-300 dark:border-stone-800 flex items-center justify-center">
+                                        <div class="w-4 h-4 rounded-full bg-stone-300 dark:bg-stone-700 border border-stone-400 dark:border-stone-800"></div>
                                     </div>
                                 </div>
                             </div>
 
-                            <!-- Front Sleeve / Art Cover -->
+                            <!-- Front Sleeve Album Cover (slides out slightly or shrinks back) -->
                             {% if has_cover and connected %}
                                 <div class="absolute left-0 top-0 bottom-0 w-3/4 z-10 shadow-2xl transition-transform duration-500 ease-out group-hover:scale-[0.98] group-hover:translate-x-1" 
                                      style="background: url('/api/files/{{ item.collectionId }}/{{ item.id }}/{{ item.file[0] }}') center/cover no-repeat">
+                                    <!-- Glossy overlay sheen -->
                                     <div class="absolute inset-0 bg-gradient-to-tr from-white/0 via-white/5 to-white/10 mix-blend-overlay"></div>
                                     <div class="absolute top-0 bottom-0 left-0 w-1.5 bg-gradient-to-r from-black/40 to-transparent"></div>
                                 </div>
                             {% else %}
-                                <div class="absolute left-0 top-0 bottom-0 w-3/4 z-10 shadow-2xl transition-transform duration-500 ease-out group-hover:scale-[0.98] group-hover:translate-x-1 flex flex-col justify-between p-4" 
+                                <div class="absolute left-0 top-0 bottom-0 w-3/4 z-10 shadow-2xl transition-transform duration-500 ease-out group-hover:scale-[0.98] group-hover:translate-x-1 flex flex-col justify-between p-4 border-r border-stone-300 dark:border-stone-800 text-stone-900 dark:text-[#FAF8F5] bg-[#EFECE6]" 
                                      style="{{ get_gradient_style(item.album, item.author) }}">
+                                    <!-- Glossy overlay sheen -->
                                     <div class="absolute inset-0 bg-gradient-to-tr from-white/0 via-white/5 to-white/10 mix-blend-overlay"></div>
                                     <div class="absolute top-0 bottom-0 left-0 w-1.5 bg-gradient-to-r from-black/40 to-transparent"></div>
                                     <div class="flex items-start justify-between">
-                                        <svg class="h-5 w-5 text-indigo-300 opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2z" /></svg>
-                                        <span class="text-[9px] font-mono tracking-widest text-slate-400 uppercase bg-black/30 px-1.5 py-0.5 rounded">CD FORMAT</span>
+                                        <svg class="h-5 w-5 text-stone-700 dark:text-stone-300 opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                            <circle cx="12" cy="12" r="10" stroke-width="2" />
+                                            <circle cx="12" cy="12" r="3" stroke-width="2" />
+                                            <path d="M12 2a10 10 0 0110 10" stroke-width="2" />
+                                        </svg>
+                                        <span class="text-[9px] font-mono tracking-widest text-stone-500 dark:text-stone-400 uppercase bg-stone-200/60 dark:bg-stone-800/60 px-1.5 py-0.5 rounded-none">CD FORMAT</span>
                                     </div>
-                                    <div class="z-10">
-                                        <h4 class="font-bold text-sm leading-tight tracking-tight text-white drop-shadow capitalize line-clamp-2">{{ item.album }}</h4>
-                                        <p class="text-[10px] text-slate-300 drop-shadow mt-1 tracking-wide font-medium capitalize">{{ item.author }}</p>
+                                    <div class="z-10 border-t border-stone-400 dark:border-stone-700 pt-3">
+                                        <h4 class="font-serif font-black text-sm leading-tight tracking-tight text-stone-950 dark:text-white uppercase line-clamp-2">{{ item.album }}</h4>
+                                        <p class="font-serif italic text-[11px] text-stone-700 dark:text-stone-300 mt-1 tracking-wide font-medium capitalize">{{ item.author }}</p>
                                     </div>
                                 </div>
                             {% endif %}
                         </div>
 
-                        <!-- Detail cards specifications -->
+                        <!-- Item details -->
                         <div class="flex flex-col gap-3">
                             <div>
-                                <h3 class="font-bold text-slate-100 group-hover:text-white capitalize text-base truncate">{{ item.album }}</h3>
-                                <p class="text-slate-400 text-xs capitalize mt-0.5 tracking-wide truncate">{{ item.author }}</p>
+                                <h3 class="font-serif font-black text-stone-900 dark:text-white group-hover:text-stone-950 dark:group-hover:text-amber-100 capitalize text-base tracking-tight truncate line-clamp-1">{{ item.album }}</h3>
+                                <p class="text-stone-500 dark:text-stone-400 font-serif italic text-xs capitalize mt-0.5 tracking-wide truncate">{{ item.author }}</p>
                             </div>
 
-                            <div class="grid grid-cols-2 gap-2 pt-1">
-                                <div class="bg-slate-950/40 border border-slate-900 rounded-lg p-2 flex flex-col justify-between">
-                                    <span class="text-[10px] font-semibold text-slate-500 uppercase">CD Disc</span>
-                                    <div class="flex items-baseline gap-1.5 mt-1">
-                                        <span class="text-sm font-bold text-slate-200">{{ item.cdcondition }}</span>
-                                        <span class="text-[10px] text-slate-500 font-semibold font-mono">/10</span>
+                            <!-- Grading Condition Blocks -->
+                            <div class="grid grid-cols-2 gap-2 pt-1 font-sans">
+                                <div class="bg-[#FAF8F5] dark:bg-stone-900/50 border border-stone-200 dark:border-stone-800 rounded-none p-2 flex flex-col justify-between">
+                                    <span class="text-[9px] font-mono text-stone-500 dark:text-stone-400 uppercase tracking-wider">CD Disc</span>
+                                    <div class="flex items-baseline gap-1 mt-0.5">
+                                        <span class="text-sm font-serif font-black text-stone-950 dark:text-white">{{ item.cdcondition }}</span>
+                                        <span class="text-[10px] text-stone-400 dark:text-stone-500 font-mono">/10</span>
                                     </div>
-                                    <span class="text-[9px] font-semibold mt-1 inline-block border px-1.5 py-0.5 rounded-md text-center {{ get_condition_color(item.cdcondition|int) }}">
+                                    <span class="text-[9px] font-semibold mt-1 inline-block border px-1.5 py-0.5 rounded-none text-center text-stone-800 dark:text-stone-200 bg-stone-100 dark:bg-stone-800 border-stone-200/80 dark:border-stone-800">
                                         {{ get_condition_label(item.cdcondition|int) }}
                                     </span>
                                 </div>
 
-                                <div class="bg-slate-950/40 border border-slate-900 rounded-lg p-2 flex flex-col justify-between">
-                                    <span class="text-[10px] font-semibold text-slate-500 uppercase">Sleeve/Cover</span>
-                                    <div class="flex items-baseline gap-1.5 mt-1">
-                                        <span class="text-sm font-bold text-slate-200">{{ item.covercondition }}</span>
-                                        <span class="text-[10px] text-slate-500 font-semibold font-mono">/10</span>
+                                <div class="bg-[#FAF8F5] dark:bg-stone-900/50 border border-stone-200 dark:border-stone-800 rounded-none p-2 flex flex-col justify-between">
+                                    <span class="text-[9px] font-mono text-stone-500 dark:text-stone-400 uppercase tracking-wider">Sleeve/Cover</span>
+                                    <div class="flex items-baseline gap-1 mt-0.5">
+                                        <span class="text-sm font-serif font-black text-stone-950 dark:text-white">{{ item.covercondition }}</span>
+                                        <span class="text-[10px] text-stone-400 dark:text-stone-500 font-mono">/10</span>
                                     </div>
-                                    <span class="text-[9px] font-semibold mt-1 inline-block border px-1.5 py-0.5 rounded-md text-center {{ get_condition_color(item.covercondition|int) }}">
+                                    <span class="text-[9px] font-semibold mt-1 inline-block border px-1.5 py-0.5 rounded-none text-center text-stone-800 dark:text-stone-200 bg-stone-100 dark:bg-stone-800 border-stone-200/80 dark:border-stone-800">
                                         {{ get_condition_label(item.covercondition|int) }}
                                     </span>
                                 </div>
                             </div>
 
-                            <!-- Footer control links -->
-                            <div class="flex items-center justify-between pt-3 border-t border-slate-900 text-[11px] text-slate-500">
-                                <span>ID: <code class="text-indigo-400 font-mono">{{ item.id[:8] }}</code></span>
+                            <!-- Date Added and Actions -->
+                            <div class="flex items-center justify-between pt-3 border-t border-stone-200 dark:border-stone-800 text-[11px] text-stone-400 dark:text-stone-500 font-mono tracking-wider uppercase">
+                                <span>ADDED {% if item.created %}{{ item.created[:10] }}{% else %}2026-07-11{% endif %}</span>
+                                <a href="/delete/{{ item.id }}" class="text-rose-600 hover:text-rose-500 font-bold hover:underline transition-colors flex items-center gap-1" onclick="return confirm('Are you sure you want to delete this CD?');">
+                                    <svg class="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                    </svg>
+                                    <span>DELETE</span>
+                                </a>
                             </div>
                         </div>
 
@@ -383,10 +483,176 @@ HTML_TEMPLATE = """
                 {% endfor %}
             </div>
         {% endif %}
-    </div>
 
     </div>
 
+    <!-- Add CD Modal -->
+    <div id="add-modal" class="fixed inset-0 bg-stone-900/40 backdrop-blur-sm hidden items-center justify-center p-4 z-50">
+        <div class="bg-white dark:bg-[#1C1A17] border-4 border-double border-stone-900 dark:border-stone-100 max-w-lg w-full overflow-hidden shadow-2xl animate-in fade-in zoom-in-95 duration-200">
+            <div class="bg-[#FAF8F5] dark:bg-stone-900 border-b border-stone-300 dark:border-stone-800 px-6 py-4 flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                    <svg class="h-5 w-5 text-stone-900 dark:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <circle cx="12" cy="12" r="10" stroke-width="2" />
+                        <circle cx="12" cy="12" r="3" stroke-width="2" />
+                        <path d="M12 2a10 10 0 0110 10" stroke-width="2" />
+                    </svg>
+                    <h2 class="text-lg font-serif font-black text-stone-900 dark:text-white uppercase tracking-tight">Add CD to Journal</h2>
+                </div>
+                <button 
+                    onclick="closeModal()"
+                    class="text-stone-400 hover:text-stone-900 dark:hover:text-white font-bold hover:bg-stone-100 dark:hover:bg-stone-800 px-2.5 py-1.5 rounded-none text-sm transition-colors cursor-pointer"
+                >
+                    ✕
+                </button>
+            </div>
+
+            <form action="/add" method="POST" enctype="multipart/form-data" class="p-6 flex flex-col gap-4 font-sans">
+                <!-- Form Input fields -->
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="col-span-2">
+                        <label class="block text-stone-700 dark:text-stone-300 text-xs font-mono uppercase tracking-wider mb-1.5">Album Title *</label>
+                        <input
+                            type="text"
+                            name="album"
+                            placeholder="e.g. dziwki dragi"
+                            required
+                            class="w-full bg-[#FAF8F5] dark:bg-[#121110] border border-stone-300 dark:border-stone-800 rounded-none px-3.5 py-2 text-xs md:text-sm text-stone-900 dark:text-stone-100 focus:outline-none focus:border-stone-900 dark:focus:border-stone-100 transition-colors"
+                        />
+                    </div>
+
+                    <div class="col-span-2">
+                        <label class="block text-stone-700 dark:text-stone-300 text-xs font-mono uppercase tracking-wider mb-1.5">Artist / Author *</label>
+                        <input
+                            type="text"
+                            name="author"
+                            placeholder="e.g. rogal ddl"
+                            required
+                            class="w-full bg-[#FAF8F5] dark:bg-[#121110] border border-stone-300 dark:border-stone-800 rounded-none px-3.5 py-2 text-xs md:text-sm text-stone-900 dark:text-stone-100 focus:outline-none focus:border-stone-900 dark:focus:border-stone-100 transition-colors"
+                        />
+                    </div>
+
+                    <div>
+                        <label class="block text-stone-700 dark:text-stone-300 text-xs font-mono uppercase tracking-wider mb-1.5 font-bold">CD Condition (1-10)</label>
+                        <div class="flex items-center gap-2">
+                            <input
+                                type="range"
+                                min="1"
+                                max="10"
+                                name="cdcondition"
+                                value="8"
+                                oninput="document.getElementById('cd-val').innerText = this.value"
+                                class="w-full h-1 bg-stone-300 dark:bg-stone-800 rounded-none appearance-none cursor-pointer accent-stone-900 dark:accent-stone-100"
+                            />
+                            <span id="cd-val" class="text-sm font-bold font-serif text-stone-950 dark:text-white min-w-[20px]">8</span>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-stone-700 dark:text-stone-300 text-xs font-mono uppercase tracking-wider mb-1.5 font-bold">Cover Condition (1-10)</label>
+                        <div class="flex items-center gap-2">
+                            <input
+                                type="range"
+                                min="1"
+                                max="10"
+                                name="covercondition"
+                                value="8"
+                                oninput="document.getElementById('cover-val').innerText = this.value"
+                                class="w-full h-1 bg-stone-300 dark:bg-stone-800 rounded-none appearance-none cursor-pointer accent-stone-900 dark:accent-stone-100"
+                            />
+                            <span id="cover-val" class="text-sm font-bold font-serif text-stone-950 dark:text-white min-w-[20px]">8</span>
+                        </div>
+                    </div>
+
+                    <div class="col-span-2">
+                        <label class="block text-stone-700 dark:text-stone-300 text-xs font-mono uppercase tracking-wider mb-1.5">Price (PLN)</label>
+                        <input
+                            type="number"
+                            name="price"
+                            placeholder="e.g. 120"
+                            class="w-full bg-[#FAF8F5] dark:bg-[#121110] border border-stone-300 dark:border-stone-800 rounded-none px-3.5 py-2 text-xs md:text-sm text-stone-900 dark:text-stone-100 focus:outline-none focus:border-stone-900 dark:focus:border-stone-100 transition-colors font-mono"
+                        />
+                    </div>
+
+                    <div class="col-span-2">
+                        <label class="block text-stone-700 dark:text-stone-300 text-xs font-mono uppercase tracking-wider mb-1.5">Cover File</label>
+                        <input
+                            type="file"
+                            name="file"
+                            accept="image/*"
+                            class="w-full bg-[#FAF8F5] dark:bg-[#121110] border border-stone-300 dark:border-stone-800 rounded-none px-3.5 py-2 text-xs text-stone-600 dark:text-stone-400 focus:outline-none focus:border-stone-900 dark:focus:border-stone-100 transition-colors file:mr-4 file:py-1 file:px-3 file:rounded-none file:border file:border-stone-400 file:text-xs file:font-mono file:bg-white dark:file:bg-stone-900 file:text-stone-800 dark:file:text-stone-200 hover:file:bg-stone-50"
+                        />
+                    </div>
+                </div>
+
+                <!-- Form Actions -->
+                <div class="flex items-center justify-end gap-3 mt-4 border-t border-stone-300 dark:border-stone-800 pt-4">
+                    <button
+                        type="button"
+                        onclick="closeModal()"
+                        class="bg-white dark:bg-stone-900 border border-stone-300 dark:border-stone-800 text-stone-700 dark:text-stone-300 font-semibold text-xs md:text-sm px-4 py-2.5 rounded-none hover:bg-stone-50 dark:hover:bg-stone-800 transition-colors cursor-pointer"
+                    >
+                        Cancel
+                    </button>
+                    <button
+                        type="submit"
+                        class="bg-[#1C1A17] dark:bg-[#FAF8F5] text-white dark:text-stone-900 font-bold text-xs md:text-sm px-6 py-2.5 rounded-none transition-all flex items-center gap-2 uppercase tracking-wider border border-stone-900 cursor-pointer"
+                    >
+                        <span>Add to Collection</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-stone-900 text-stone-400 border-t border-stone-850 py-6 px-4 text-center text-xs font-mono mt-12">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-2">
+            <span>CD JOURNAL COLLECTION MANAGEMENT SYSTEM • EST. 2026</span>
+            <span class="text-stone-500">Configured to poll local dev-server at {{ pb_url }}</span>
+        </div>
+    </footer>
+
+    <!-- Theme and Modal Logic Scripts -->
+    <script>
+        function toggleTheme() {
+            const htmlClass = document.documentElement.classList;
+            if (htmlClass.contains('dark')) {
+                htmlClass.remove('dark');
+                localStorage.setItem('theme', 'light');
+                updateThemeButtonText(false);
+            } else {
+                htmlClass.add('dark');
+                localStorage.setItem('theme', 'dark');
+                updateThemeButtonText(true);
+            }
+        }
+
+        function updateThemeButtonText(isDark) {
+            const btnText = document.getElementById('theme-btn-text');
+            if (btnText) {
+                btnText.innerText = isDark ? 'LIGHT THEME' : 'DARK THEME';
+            }
+        }
+
+        // Sync button text on load
+        document.addEventListener('DOMContentLoaded', () => {
+            const isDark = document.documentElement.classList.contains('dark');
+            updateThemeButtonText(isDark);
+        });
+
+        // Modal triggers
+        function openModal() {
+            const modal = document.getElementById('add-modal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        function closeModal() {
+            const modal = document.getElementById('add-modal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+    </script>
 </body>
 </html>
 """
