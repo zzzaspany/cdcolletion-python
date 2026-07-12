@@ -250,8 +250,6 @@ HTML_TEMPLATE = """
 
     <!-- Main Wrapper -->
     <div class="flex-1 max-w-7xl w-full mx-auto p-4 md:p-8 flex flex-col gap-6 md:gap-8">
-        
-        <!-- Dashboard Header -->
         <header class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-slate-900 pb-6">
             <div class="flex items-center gap-4">
                 <div class="bg-slate-900 border border-slate-800 p-3.5 rounded-full relative shadow-inner">
@@ -443,56 +441,6 @@ HTML_TEMPLATE = """
         {% endif %}
     </div>
 
-    <!-- Modal Form overlay -->
-    <div id="add-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50 hidden animate-in fade-in duration-200">
-        <div class="bg-slate-900 border border-slate-800 rounded-3xl max-w-lg w-full overflow-hidden shadow-2xl">
-            <div class="bg-slate-950 border-b border-slate-800 px-6 py-4 flex items-center justify-between">
-                <div class="flex items-center gap-2">
-                    <svg class="h-5 w-5 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="10" stroke-width="2"/><path d="M12 8v8M8 12h8" stroke-width="2"/></svg>
-                    <h2 class="text-lg font-bold text-white">Add CD to Vault</h2>
-                </div>
-                <button onclick="document.getElementById('add-modal').classList.add('hidden')" class="text-slate-400 hover:text-slate-200 px-2 rounded-lg text-sm font-semibold">✕</button>
-            </div>
-
-            <form action="/add" method="POST" enctype="multipart/form-data" class="p-6 flex flex-col gap-4">
-                <div class="grid grid-cols-2 gap-4">
-                    <div class="col-span-2">
-                        <label class="block text-slate-400 text-xs font-bold uppercase mb-1.5">Album Title *</label>
-                        <input type="text" name="album" placeholder="e.g. dziwki dragi" required class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs md:text-sm text-slate-200 focus:outline-none focus:border-indigo-500" />
-                    </div>
-
-                    <div class="col-span-2">
-                        <label class="block text-slate-400 text-xs font-bold uppercase mb-1.5">Artist / Author *</label>
-                        <input type="text" name="author" placeholder="e.g. rogal ddl" required class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs md:text-sm text-slate-200 focus:outline-none focus:border-indigo-500" />
-                    </div>
-
-                    <div>
-                        <label class="block text-slate-400 text-xs font-bold uppercase mb-1.5">CD Condition (1-10)</label>
-                        <input type="number" name="cdcondition" min="1" max="10" value="8" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs md:text-sm text-slate-200 focus:outline-none focus:border-indigo-500" />
-                    </div>
-
-                    <div>
-                        <label class="block text-slate-400 text-xs font-bold uppercase mb-1.5">Cover Condition (1-10)</label>
-                        <input type="number" name="covercondition" min="1" max="10" value="8" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs md:text-sm text-slate-200 focus:outline-none focus:border-indigo-500" />
-                    </div>
-
-                    <div class="col-span-2">
-                        <label class="block text-slate-400 text-xs font-bold uppercase mb-1.5">Price (PLN)</label>
-                        <input type="number" name="price" placeholder="e.g. 120" required class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs md:text-sm text-slate-200 focus:outline-none focus:border-indigo-500 font-mono" />
-                    </div>
-
-                    <div class="col-span-2">
-                        <label class="block text-slate-400 text-xs font-bold uppercase mb-1.5">Cover Image File</label>
-                        <input type="file" name="file" accept="image/*" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-slate-400" />
-                    </div>
-                </div>
-
-                <div class="flex items-center justify-end gap-3 mt-4 border-t border-slate-800 pt-4">
-                    <button type="button" onclick="document.getElementById('add-modal').classList.add('hidden')" class="bg-slate-950 border border-slate-800 text-slate-300 px-4 py-2.5 rounded-xl text-xs font-medium">Cancel</button>
-                    <button type="submit" class="bg-indigo-600 hover:bg-indigo-500 text-white px-6 py-2.5 rounded-xl text-xs font-medium shadow-md shadow-indigo-600/15">Save CD</button>
-                </div>
-            </form>
-        </div>
     </div>
 
 </body>
