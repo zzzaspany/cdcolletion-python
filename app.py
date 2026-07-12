@@ -226,28 +226,6 @@ HTML_TEMPLATE = """
 </head>
 <body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col selection:bg-indigo-500/30 selection:text-indigo-200">
     
-    <!-- Top connection status banner -->
-    <div class="bg-gradient-to-r from-indigo-950 via-slate-900 to-indigo-950 border-b border-indigo-500/20 px-4 py-3 text-xs md:text-sm">
-        <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-3">
-            <div class="flex items-center gap-2 text-indigo-200">
-                <svg class="h-4 w-4 text-indigo-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                <span>
-                    {% if connected %}
-                        <span class="font-semibold text-emerald-400">⚡ Live Link Active:</span> PocketBase connected on <strong class="font-mono text-xs">{{ pb_url }}</strong>
-                    {% else %}
-                        <span class="font-semibold text-amber-400">💡 Running in Sandbox Mode:</span> Local PocketBase offline at <strong class="font-mono text-xs">{{ pb_url }}</strong>. Using in-memory database.
-                    {% endif %}
-                </span>
-            </div>
-            <div class="flex items-center gap-1.5 bg-slate-950/40 border border-slate-800 px-2.5 py-1 rounded-lg text-xs font-mono">
-                <div class="h-2 w-2 rounded-full {% if connected %}bg-emerald-500 animate-pulse{% else %}bg-amber-500{% endif %}"></div>
-                <span class="text-slate-400">{% if connected %}LIVE{% else %}DEMO{% endif %}</span>
-            </div>
-        </div>
-    </div>
-
     <!-- Main Wrapper -->
     <div class="flex-1 max-w-7xl w-full mx-auto p-4 md:p-8 flex flex-col gap-6 md:gap-8">
         <header class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-slate-900 pb-6">
@@ -259,47 +237,13 @@ HTML_TEMPLATE = """
                         <path d="M12 2a10 10 0 0110 10" stroke-width="2" />
                     </svg>
                 </div>
-                <div class="flex items-center gap-2">
+                <div class="flex items-center gap-3">
                     <h1 class="text-2xl md:text-3xl font-bold tracking-tight bg-gradient-to-r from-slate-100 via-indigo-200 to-indigo-400 bg-clip-text text-transparent">CD Vault</h1>
                     <span class="text-[10px] font-mono font-semibold tracking-wider text-indigo-400 uppercase bg-indigo-500/10 border border-indigo-500/20 px-2 py-0.5 rounded-full">v0.2</span>
+                    <span class="text-xs font-mono font-bold tracking-wider text-emerald-400 uppercase bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-0.5 rounded-full">{{ stats.count }} Items</span>
                 </div>
             </div>
         </header>
-
-        <!-- Bento Stats Grid -->
-        <section class="grid grid-cols-2 lg:grid-cols-4 gap-4">
-            <div class="bg-slate-900/50 border border-slate-900 rounded-2xl p-4 md:p-5 flex flex-col justify-between group hover:border-slate-800 transition-all">
-                <span class="text-slate-500 text-xs font-semibold uppercase tracking-wide">Total Records</span>
-                <div class="mt-4">
-                    <div class="text-2xl md:text-3xl font-bold font-mono text-white">{{ stats.count }}</div>
-                    <p class="text-[10px] md:text-xs text-indigo-400/80 mt-1">Physical CD indexes</p>
-                </div>
-            </div>
-            
-            <div class="bg-slate-900/50 border border-slate-900 rounded-2xl p-4 md:p-5 flex flex-col justify-between group hover:border-slate-800 transition-all">
-                <span class="text-slate-500 text-xs font-semibold uppercase tracking-wide">Avg Disc Grading</span>
-                <div class="mt-4">
-                    <div class="text-2xl md:text-3xl font-bold font-mono text-white">{{ stats.avg_cd }} <span class="text-xs text-slate-500">/ 10</span></div>
-                    <p class="text-[10px] md:text-xs text-emerald-400/80 mt-1">{{ get_condition_label(stats.avg_cd|round|int) }}</p>
-                </div>
-            </div>
-
-            <div class="bg-slate-900/50 border border-slate-900 rounded-2xl p-4 md:p-5 flex flex-col justify-between group hover:border-slate-800 transition-all">
-                <span class="text-slate-500 text-xs font-semibold uppercase tracking-wide">Avg Cover Grading</span>
-                <div class="mt-4">
-                    <div class="text-2xl md:text-3xl font-bold font-mono text-white">{{ stats.avg_cover }} <span class="text-xs text-slate-500">/ 10</span></div>
-                    <p class="text-[10px] md:text-xs text-teal-400/80 mt-1">{{ get_condition_label(stats.avg_cover|round|int) }}</p>
-                </div>
-            </div>
-
-            <div class="bg-slate-900/50 border border-slate-900 rounded-2xl p-4 md:p-5 flex flex-col justify-between group hover:border-slate-800 transition-all">
-                <span class="text-slate-500 text-xs font-semibold uppercase tracking-wide">Est. Value</span>
-                <div class="mt-4">
-                    <div class="text-2xl md:text-3xl font-bold font-mono text-white">{{ stats.total_value }} <span class="text-xs text-slate-500">PLN</span></div>
-                    <p class="text-[10px] md:text-xs text-amber-400/80 mt-1">Based on album price tags</p>
-                </div>
-            </div>
-        </section>
 
         <!-- Utility Bar & Search Form -->
         <div class="bg-slate-900/30 border border-slate-900/60 p-4 rounded-2xl flex flex-col md:flex-row md:items-center gap-4 justify-between">

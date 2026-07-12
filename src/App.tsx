@@ -413,51 +413,6 @@ export default function App() {
   return (
     <div className="min-h-screen bg-[#FBF9F6] text-stone-900 flex flex-col font-sans selection:bg-stone-200 selection:text-stone-850">
       
-      {/* Banner indicating sandbox/demo status & how to connect */}
-      <div className="bg-[#1C1A17] text-[#FAF8F5] border-b border-stone-800 px-4 py-3 text-xs md:text-sm tracking-wide">
-        <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-3">
-          <div className="flex items-center gap-2 text-stone-300">
-            <Info className="h-4 w-4 text-stone-400 flex-shrink-0" />
-            <span>
-              {connectionStatus === 'connected' ? (
-                <span className="font-semibold text-emerald-400">⚡ Live Link Active:</span>
-              ) : (
-                <span className="font-semibold text-amber-400">💡 Browser IFrame Sandboxed:</span>
-              )} Connected to PocketBase running on your device.
-            </span>
-          </div>
-          
-          <div className="flex items-center gap-3 w-full md:w-auto">
-            <div className="flex bg-stone-900 rounded-none p-1 border border-stone-700 w-full md:w-auto">
-              <input 
-                type="text" 
-                value={pocketbaseUrl} 
-                onChange={(e) => setPocketbaseUrl(e.target.value)}
-                placeholder="http://127.0.0.1:8090"
-                className="bg-transparent px-2 py-1 text-xs text-stone-300 placeholder-stone-600 focus:outline-none w-full md:w-44 font-mono"
-              />
-              <button 
-                onClick={() => checkPocketBaseConnection(pocketbaseUrl)}
-                disabled={isReconnecting}
-                className="bg-stone-700 hover:bg-stone-600 text-white font-medium text-xs px-2.5 py-1 rounded-none transition-colors flex items-center gap-1.5 flex-shrink-0 cursor-pointer"
-              >
-                {isReconnecting ? (
-                  <RefreshCw className="h-3 w-3 animate-spin" />
-                ) : (
-                  <RefreshCw className="h-3 w-3" />
-                )}
-                Reconnect
-              </button>
-            </div>
-            
-            <div className="flex items-center gap-1.5 bg-stone-800 border border-stone-700 px-2.5 py-1.5 rounded-none text-xs font-mono">
-              <div className={`h-2.5 w-2.5 rounded-full ${connectionStatus === 'connected' ? 'bg-emerald-500 animate-pulse' : 'bg-amber-500'}`} />
-              <span className="text-stone-400">{connectionStatus === 'connected' ? 'LIVE' : 'DEMO'}</span>
-            </div>
-          </div>
-        </div>
-      </div>
-
       {/* Main App Layout */}
       <div className="flex-1 max-w-7xl w-full mx-auto p-4 md:p-8 flex flex-col gap-6 md:gap-8">
         
@@ -469,6 +424,8 @@ export default function App() {
             <span>EST. 2026</span>
             <span>•</span>
             <span className="text-stone-800 font-bold bg-stone-200 px-1.5 py-0.5">V0.2</span>
+            <span>•</span>
+            <span className="text-emerald-800 font-bold bg-emerald-100 px-1.5 py-0.5">{stats.count} ITEMS</span>
           </div>
           <div className="flex flex-col items-center gap-1">
             <h1 className="text-4xl md:text-6xl font-serif font-black tracking-tight text-stone-900 uppercase">
@@ -513,77 +470,6 @@ export default function App() {
         {/* Tab content */}
         {activeTab === 'collection' && (
           <>
-            {/* Stat Cards / Bento Grid */}
-            <section className="grid grid-cols-2 lg:grid-cols-4 border border-stone-300 bg-white divide-y lg:divide-y-0 lg:divide-x divide-stone-300">
-              <div id="stat-total-cds" className="p-5 flex flex-col justify-between group bg-white">
-                <div className="flex justify-between items-start">
-                  <span className="text-stone-500 text-xs font-mono uppercase tracking-wider">Total Records</span>
-                  <div className="text-stone-400 group-hover:text-stone-800 transition-colors">
-                    <Music className="h-4 w-4" />
-                  </div>
-                </div>
-                <div className="mt-4">
-                  <div className="text-3xl md:text-4xl font-serif font-black tracking-tight text-stone-900">{stats.count}</div>
-                  <p className="text-[10px] text-stone-500 mt-1 flex items-center gap-1 font-mono uppercase">
-                    <Sparkles className="h-3 w-3 text-stone-400" />
-                    <span>Physical discs index</span>
-                  </p>
-                </div>
-              </div>
-
-              <div id="stat-avg-condition" className="p-5 flex flex-col justify-between group bg-[#FAF8F5]">
-                <div className="flex justify-between items-start">
-                  <span className="text-stone-500 text-xs font-mono uppercase tracking-wider">Avg CD Grading</span>
-                  <div className="text-stone-400 group-hover:text-stone-800 transition-colors">
-                    <Disc className="h-4 w-4" />
-                  </div>
-                </div>
-                <div className="mt-4">
-                  <div className="text-3xl md:text-4xl font-serif font-black tracking-tight text-stone-900">
-                    {stats.avgCd} <span className="text-xs md:text-sm text-stone-400 font-mono">/ 10</span>
-                  </div>
-                  <p className="text-[10px] text-stone-600 font-serif italic mt-1 font-semibold">
-                    {getConditionLabel(Math.round(stats.avgCd))}
-                  </p>
-                </div>
-              </div>
-
-              <div id="stat-avg-cover" className="p-5 flex flex-col justify-between group bg-white">
-                <div className="flex justify-between items-start">
-                  <span className="text-stone-500 text-xs font-mono uppercase tracking-wider">Avg Cover Grading</span>
-                  <div className="text-stone-400 group-hover:text-stone-800 transition-colors">
-                    <BookOpen className="h-4 w-4" />
-                  </div>
-                </div>
-                <div className="mt-4">
-                  <div className="text-3xl md:text-4xl font-serif font-black tracking-tight text-stone-900">
-                    {stats.avgCover} <span className="text-xs md:text-sm text-stone-400 font-mono">/ 10</span>
-                  </div>
-                  <p className="text-[10px] text-stone-600 font-serif italic mt-1 font-semibold">
-                    {getConditionLabel(Math.round(stats.avgCover))}
-                  </p>
-                </div>
-              </div>
-
-              <div id="stat-total-value" className="p-5 flex flex-col justify-between group bg-[#FAF8F5]">
-                <div className="flex justify-between items-start">
-                  <span className="text-stone-500 text-xs font-mono uppercase tracking-wider">Portfolio Value</span>
-                  <div className="text-stone-400 group-hover:text-stone-800 transition-colors">
-                    <Coins className="h-4 w-4" />
-                  </div>
-                </div>
-                <div className="mt-4">
-                  <div className="text-3xl md:text-4xl font-serif font-black tracking-tight text-stone-900">
-                    {stats.totalValue.toLocaleString()} <span className="text-xs md:text-sm text-stone-400 font-mono">PLN</span>
-                  </div>
-                  <p className="text-[10px] text-stone-500 mt-1 flex items-center gap-1 font-mono uppercase">
-                    <TrendingUp className="h-3 w-3 text-stone-400" />
-                    <span>Market price estimate</span>
-                  </p>
-                </div>
-              </div>
-            </section>
-
             {/* Utility Bar: Search, Sort & Filters */}
             <div className="border border-stone-300 bg-white p-4 flex flex-col md:flex-row md:items-center gap-4 justify-between">
               
