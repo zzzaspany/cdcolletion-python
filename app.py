@@ -203,6 +203,19 @@ def get_condition_color(rating):
     if rating >= 5: return "text-amber-400 bg-amber-500/10 border-amber-500/20"
     return "text-rose-400 bg-rose-500/10 border-rose-500/20"
 
+def get_auth_user():
+    """Resolves authenticated user from standard single sign-on / proxy headers"""
+    env_override = os.environ.get("MOCK_AUTH_USER")
+    if env_override:
+        return env_override.strip()
+    
+    user = request.headers.get("Remote-User")
+    if not user:
+        user = request.headers.get("X-Webauth-User")
+    if not user:
+        user = request.headers.get("X-Forwarded-User")
+    return user.strip() if user else None
+
 # Inject helper functions directly into the Jinja template rendering environment
 app.jinja_env.globals.update(
     get_gradient_style=get_gradient_style,
@@ -263,6 +276,15 @@ HTML_TEMPLATE = """
             {% endif %}
         </div>
         <div class="flex items-center gap-3">
+            {% if user %}
+                <span class="text-[10px] font-mono font-bold text-emerald-800 dark:text-emerald-400 bg-emerald-105 dark:bg-emerald-950/40 px-2.5 py-1.5 border border-emerald-300 dark:border-emerald-800/80 uppercase tracking-wider">
+                    USER: {{ user }}
+                </span>
+            {% else %}
+                <span class="text-[10px] font-mono font-bold text-stone-500 bg-stone-100 dark:bg-stone-900 dark:text-stone-400 px-2.5 py-1.5 border border-stone-300 dark:border-stone-800/80 uppercase tracking-wider italic">
+                    GUEST VIEW (READ-ONLY)
+                </span>
+            {% endif %}
             <button
                 onclick="toggleTheme()"
                 class="flex items-center gap-2 px-3 py-1.5 text-xs font-mono font-bold tracking-wider border border-stone-300 dark:border-stone-800 hover:border-stone-900 dark:hover:border-stone-100 transition-all cursor-pointer text-stone-700 dark:text-stone-300 bg-white dark:bg-[#1C1A17] shadow-sm"
@@ -314,6 +336,7 @@ HTML_TEMPLATE = """
             </div>
 
             <!-- Add CD Quick Trigger Button -->
+            {% if user %}
             <button
                 onclick="openModal()"
                 class="mt-2 bg-[#1C1A17] dark:bg-[#FAF8F5] text-white dark:text-stone-900 px-6 py-2.5 text-xs font-bold tracking-wider uppercase hover:opacity-90 transition-all cursor-pointer flex items-center gap-2"
@@ -323,6 +346,7 @@ HTML_TEMPLATE = """
                 </svg>
                 <span>Add CD to Journal</span>
             </button>
+            {% endif %}
         </header>
 
         <!-- Session Message Flashers -->
@@ -470,12 +494,14 @@ HTML_TEMPLATE = """
                             <!-- Date Added and Actions -->
                             <div class="flex items-center justify-between pt-3 border-t border-stone-200 dark:border-stone-800 text-[11px] text-stone-400 dark:text-stone-500 font-mono tracking-wider uppercase">
                                 <span>ADDED {% if item.created %}{{ item.created[:10] }}{% else %}2026-07-11{% endif %}</span>
+                                {% if user %}
                                 <a href="/delete/{{ item.id }}" class="text-rose-600 hover:text-rose-500 font-bold hover:underline transition-colors flex items-center gap-1" onclick="return confirm('Are you sure you want to delete this CD?');">
                                     <svg class="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                                     </svg>
                                     <span>DELETE</span>
                                 </a>
+                                {% endif %}
                             </div>
                         </div>
 
@@ -487,6 +513,7 @@ HTML_TEMPLATE = """
     </div>
 
     <!-- Add CD Modal -->
+    {% if user %}
     <div id="add-modal" class="fixed inset-0 bg-stone-900/40 backdrop-blur-sm hidden items-center justify-center p-4 z-50">
         <div class="bg-white dark:bg-[#1C1A17] border-4 border-double border-stone-900 dark:border-stone-100 max-w-lg w-full overflow-hidden shadow-2xl animate-in fade-in zoom-in-95 duration-200">
             <div class="bg-[#FAF8F5] dark:bg-stone-900 border-b border-stone-300 dark:border-stone-800 px-6 py-4 flex items-center justify-between">
@@ -569,7 +596,7 @@ HTML_TEMPLATE = """
                             type="number"
                             name="price"
                             placeholder="e.g. 120"
-                            class="w-full bg-[#FAF8F5] dark:bg-[#121110] border border-stone-300 dark:border-stone-800 rounded-none px-3.5 py-2 text-xs md:text-sm text-stone-900 dark:text-stone-100 focus:outline-none focus:border-stone-900 dark:focus:border-stone-100 transition-colors font-mono"
+                            class="w-full bg-[#FAF8F5] dark:bg-[#121110] border border-stone-300 dark:border-stone-800 rounded-none px-3.5 py-2 text-xs md:text-sm text-stone-950 dark:text-stone-100 focus:outline-none focus:border-stone-900 dark:focus:border-stone-100 transition-colors font-mono"
                         />
                     </div>
 
@@ -603,6 +630,7 @@ HTML_TEMPLATE = """
             </form>
         </div>
     </div>
+    {% endif %}
 
     <!-- Footer -->
     <footer class="bg-stone-900 text-stone-400 border-t border-stone-850 py-6 px-4 text-center text-xs font-mono mt-12">
@@ -712,12 +740,17 @@ def index():
         search_query=search_query, 
         connected=connected, 
         pb_url=POCKETBASE_URL, 
-        stats=stats
+        stats=stats,
+        user=get_auth_user()
     )
 
 
 @app.route("/add", methods=["POST"])
 def add_cd():
+    if not get_auth_user():
+        flash("Authorization failed. You must be logged in to add items to the collection.", "error")
+        return redirect(url_for("index"))
+
     album = request.form.get("album", "").strip()
     author = request.form.get("author", "").strip()
     cd_cond = request.form.get("cdcondition", "8").strip()
@@ -778,6 +811,10 @@ def add_cd():
 
 @app.route("/delete/<record_id>")
 def delete_cd(record_id):
+    if not get_auth_user():
+        flash("Authorization failed. You must be logged in to remove items from the collection.", "error")
+        return redirect(url_for("index"))
+
     internal_url = get_pocketbase_internal_url()
     try:
         response = requests.delete(
